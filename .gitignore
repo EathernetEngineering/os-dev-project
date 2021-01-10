@@ -1,0 +1,6 @@
+# ignore all binary files
+
+bin/
+**.bin
+**.o
+
