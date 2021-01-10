@@ -5,8 +5,9 @@
 #include "../cpu/idt.h"
 #include "../cpu/timer.h"
 #include "../libc/string.h"
+#include "../libc/stddef.h"
 
-char* load_kernel_string;
+bool should_quit = false;
 
 void _start()
 {
@@ -18,8 +19,7 @@ void _start()
 
 	kprint("\n> ");
 
-end_kernel_label:
-	goto end_kernel_label;
+	while (!should_quit);
 }
 
 void user_input(char* input)
@@ -27,7 +27,7 @@ void user_input(char* input)
 	if (strcmp(input, "END") == 0)
 	{
 		kprint("Stopping the CPU.\nBye!");
-		asm volatile("hlt");
+		should_quit = true;
 	}
 	kprint("You said: ");
 	kprint(input);

@@ -1,0 +1,4 @@
+# Fix language detection issues in git
+
+*.h linguist-language=C
+
