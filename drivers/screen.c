@@ -43,11 +43,11 @@ void kprint_backspace()
 	int offset = get_cursor_offset()-2;
 	int row = get_offset_row(offset);
 	int col = get_offset_col(offset);
-	if (!(col <= 1))
-	{
+//	if (!(col <= 1))
+//	{
 		print_char(' ', col, row, WHITE_ON_BLACK);
 		set_cursor_offset(offset);
-	}
+//	}
 }
 
 int print_char(char c, int col, int row, char attr) {

@@ -7,15 +7,13 @@
 #include "../libc/string.h"
 #include "../libc/stddef.h"
 
-bool should_quit = false;
+static bool should_quit = false;
 
 void _start()
 {
 	kprint_at("Loaded Kernel!", 0, 1);
 	isr_install();
-	asm volatile("sti");
-	init_timer(50);
-	init_keyboard();
+	irq_install();
 
 	kprint("\n> ");
 
@@ -24,10 +22,11 @@ void _start()
 
 void user_input(char* input)
 {
-	if (strcmp(input, "END") == 0)
+	if (strcmp(input, "shutdown") == 0)
 	{
 		kprint("Stopping the CPU.\nBye!");
 		should_quit = true;
+		return;
 	}
 	kprint("You said: ");
 	kprint(input);

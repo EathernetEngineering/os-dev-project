@@ -4,6 +4,8 @@
 #include "ports.h"
 #include "../kernel/util.h"
 #include "../libc/string.h"
+#include "../drivers/keyboard.h"
+#include "timer.h"
 
 isr_t interrupt_handlers[256];
 
@@ -110,14 +112,14 @@ char *exception_messages[] = {
 	"Reserved"
 };
 
-void isr_handler(registers_t r)
+void isr_handler(registers_t *r)
 {
 	kprint("received interrupt: ");
 	char s[3];
-	int_to_ascii(r.int_no, s);
+	int_to_ascii(r->int_no, s);
 	kprint(s);
 	kprint("\n");
-	kprint(exception_messages[r.int_no]);
+	kprint(exception_messages[r->int_no]);
 	kprint("\n");
 }
 
@@ -126,15 +128,22 @@ void register_interrupt_handler(unsigned char n, isr_t handler)
 	interrupt_handlers[n] = handler;
 }
 
-void irq_handler(registers_t r)
+void irq_handler(registers_t *r)
 {
-	if (r.int_no >= 40) port_byte_out(0x0A, 0x20);
+	if (r->int_no >= 40) port_byte_out(0x0A, 0x20);
 	port_byte_out(0x20, 0x20);
 
-	if (interrupt_handlers[r.int_no] != 0)
+	if (interrupt_handlers[r->int_no] != 0)
 	{
-		isr_t handler = interrupt_handlers[r.int_no];
+		isr_t handler = interrupt_handlers[r->int_no];
 		handler(r);
 	}
+}
+
+void irq_install()
+{
+	asm volatile("sti");
+	init_timer(50);
+	init_keyboard();
 }
 

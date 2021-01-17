@@ -24,8 +24,29 @@ disk_error:
 	mov bx, DISK_ERROR
 	call print
 	call print_nl
-	mov dh, ah
-	call print_hex
+	
+	mov dx, ax
+	ror dx, 8
+	and dx, 0x000f
+	add dl, 0x30
+	cmp dl, 0x39
+	jle noadd1
+	add dl, 7
+noadd1:
+	mov [HEX_OUT+3], dl
+	mov dx, ax
+	ror dx, 4
+	and dx, 0x000F
+	add dl, 0x30
+	cmp dl, 0x39
+	jle noadd2
+	add dl, 7
+noadd2:
+	mov [HEX_OUT+2], dl
+
+	mov bx, HEX_OUT
+	call print
+
 	pop bx
 	jmp hang_on_disk_error
 
@@ -41,4 +62,7 @@ hang_on_disk_error:
 
 DISK_ERROR: db "Disk read error", 0
 SECTORS_ERROR: db "Incorrect number of sectors read", 0
+
+HEX_OUT:
+db "0x00", 0
 

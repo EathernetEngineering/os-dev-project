@@ -76,9 +76,10 @@ typedef struct {
 } registers_t;
 
 void isr_install();
-void isr_handler(registers_t r);
+void isr_handler(registers_t *r);
+void irq_install();
 
-typedef void (*isr_t)(registers_t);
+typedef void (*isr_t)(registers_t*);
 void register_interrupt_handler(unsigned char n, isr_t handler);
 
 #endif
