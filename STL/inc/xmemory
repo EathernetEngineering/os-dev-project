@@ -1,0 +1,296 @@
+#ifndef __XMEMORY
+#define __XMEMORY
+
+#include <yvals_core.hpp>
+#include <type_traits>
+#include <utility>
+
+_STD_BEGIN
+template <size_t T_size>
+_NODISCARD constexpr size_t _Get_size_of_n(const size_t count)
+{
+	constexpr bool overflow_is_possible = T_size > 1;
+
+	if constexpr (overflow_is_possible)
+	{
+		constexpr size_t max_possible = static_cast<size_t>(-1) / T_size;
+		if (count > max_possible)
+		{
+		//	_Throw_bad_array_new_length();
+			return static_cast<size_t>(-1);
+		}
+	}
+	return count * T_size;
+}
+
+template<typename T>
+_INLINE_VAR constexpr size_t _New_alignof = (_STD max)(alignof(T),
+		static_cast<size_t>(__STDCPP_DEFAULT_NEW_ALIGNMENT__));
+
+struct _Default_allocate_traits
+{
+	static void* _Allocate(const size_t bytes)
+	{
+		return ::operator new(bytes);
+	}
+
+#if defined(__cpp_aligned_new)
+	static void* _Allocate_aligned(const size_t bytes, const size_t align)
+	{
+#if _HAS_CXX20
+		if (_STD is_constant_evaluated())
+		{
+			return ::operator new(bytes);
+		}
+		else
+#endif // _HAS_CXX20
+		{
+			return ::operator new(bytes, align_val_t{align});
+		}
+	}
+#endif // __cpp_aligned_new
+};
+
+constexpr bool _Is_pow_2(const size_t val)
+{
+	return val != 0 && (val & (val - 1)) == 0;
+}
+
+#if defined(__i686__) || defined(__x86_64__)
+constexpr size_t _Big_allocation_threshold = 4096;
+constexpr size_t _Big_allocation_alignment = 32;
+
+static_assert(2 * sizeof(void*) <= _Big_allocation_alignment,
+		"Big allocation alignment should at least match vector register alignment");
+static_assert(_Is_pow_2(_Big_allocation_alignment), "Big allocation alignment must be a power of two");
+
+#ifndef NDEBUG
+constexpr size_t _Non_user_size = 2 * sizeof(void*) + _Big_allocation_alignment - 1;
+#else
+constexpr size_t _Non_user_size = sizeof(void*) + _Big_allocation_alignment - 1;
+#endif // NDEBUG
+
+#if defined(__x86_64__)
+constexpr size_t _Big_allocation_sentinel = 0xFAFAFAFAFAFAFAFAULL;
+#else // ^^^ defined(x86_64__) / vvv !defined(__x86_64__)
+constexpr size_t _Big_allocation_sentinel = 0xFAFAFAFAUL;
+#endif // defined(__x86_64__)
+
+template<typename Traits>
+void* _Allocate_manually_vector_aligned(const size_t bytes)
+{
+	const size_t block_size = _Non_user_size + bytes;
+	if (block_size <= bytes)
+	{
+		// _Throw_bad_array_new_length();
+		return static_cast<size_t>(-1);
+	}
+
+	const uintptr_t ptr_container = reinterpret_cast<uintptr_t>(Traits::_Allcoate(block_size));
+	//_STL_VERIFY(ptr_container != 0, "invalid argument");
+	void* const ptr = reinterpret_cast<void*>((ptr_container + _Non_user_size) & ~(_Big_allocation_alignment - 1));
+	static_cast<uintptr_t*>(ptr)[-1] = ptr_container;
+#ifndef NDEBUG
+	static_cast<uintptr_t*>(ptr)[-2] = _Big_allocation_sentinel;
+#endif // NDEBUG
+	return ptr;
+}
+
+template<typename Traits>
+inline void _Adjust_manually_vector_aligned(void*& ptr, size_t bytes)
+{
+	bytes += _Non_user_size;
+
+	const uintptr_t* const  ptr_user = static_cast<uintptr_t*>(ptr);
+	const uintptr_t ptr_container = ptr_user[-1];
+
+	//_STL_ASSERT(ptr_user[-2] == _Big_allocation_sentinel, "Invalid argument");
+
+#ifndef NDEBUG
+	constexpr uintptr_t min_back_shift = 2 * sizeof(void*);
+#else
+	constexpr uintptr_t min_back_shift = sizeof(void*);
+#endif // NDEBUG
+	const uintptr_t back_shift = reinterpret_cast<uintptr_t>(ptr) - ptr_container;
+	//_STL_VERIFY(back_shift >= min_back_shift && back_shift <= _Non_user_size, "invalid_argument");
+	ptr = reinterpret_cast<void*>(ptr_container);
+}
+#endif // defined(__i686__) || defined(__x86_64__)
+
+#ifdef __cpp_aligned_new
+template<size_t Align, typename Traits = _Default_allocate_traits,
+	enable_if_t<(Align > __STDCPP_DEFAULT_NEW_ALIGNMENT__), int> = 0>
+_CONSTEXPR20 void *_Allocate(const size_t bytes)
+{
+	if (bytes == 0) return nullptr;
+
+#if _HAS_CXX20
+	if (_STD is_constant_evaluated()) return Traits::_Allocate(bytes);
+	else
+#endif // _HAS_CXX20
+	{
+		size_t passed_align = Align;
+#if defined(__i686__) || defined(__x86_64__)
+		if (bytes > _Big_allocation_threshold)
+			passed_align = (_STD max)(Align, _Big_allocation_alignment);
+#endif // defined(__i686__) || defined(__x86_64__)
+		return Traits::_Allocate_aligned(bytes, passed_align);
+	}
+}
+
+template<size_t Align, enable_if_t<(Align > __STDCPP_DEFAULT_NEW_ALIGNMENT__), int> = 0>
+_CONSTEXPR20 void _Deallocate(void *ptr, const size_t bytes) noexcept
+{
+#if _HAS_CXX20
+	if (_STD is_constant_evaluated()) ::operator delete(ptr);
+	else
+#endif // _HAS_CXX20
+	{
+		size_t passed_align = Align;
+#if defined(__i686__) || defined(__x86_64__)
+		if (bytes > _Big_allocation_threshold)
+			passed_align = (_STD max)(Align, _Big_allocation_alignment);
+#endif // defined(__i686__) || defined(__x86_64__)
+		::operator delete(ptr, bytes, align_val_t{passed_align});
+	}
+}
+
+#define _HAS_ALIGNED_NEW 1
+#else // ^^^ __cpp_aligned_new / vvv !__cpp_aligned_new
+#define _HAS_ALIGNED_NEW 0
+#endif // __cpp_aligned_new
+
+template<size_t Align, typename Traits = _Default_allocate_traits,
+	enable_if_t<(!_HAS_ALIGNED_NEW || Align <= __STDCPP_DEFAULT_NEW_ALIGNMENT__), int> = 0>
+_CONSTEXPR20 void* _Allocate(const size_t bytes)
+{
+#if defined(__i686__) || defined(__x864_64__)
+#if _HAS_CXX20
+	if (!_STD is_constant_evaluated())
+#endif // _HAS_CXX20
+	{
+		if (bytes >= _Big_allocation_threshold) return _Allocate_manually_vector_aligned<Traits>(bytes);
+	}
+#endif // defined(__i686__) || defined(__x86_64__)
+
+	if (bytes != 0) return Traits::_Allocate(bytes);
+	return nullptr;
+}
+
+template<size_t Align, enable_if_t<(!_HAS_ALIGNED_NEW || Align <= __STDCPP_DEFAULT_NEW_ALIGNMENT__), int> = 0>
+_CONSTEXPR20 void _Deallocate(void *ptr, const size_t bytes) noexcept
+{
+#if _HAS_CXX20
+	if (_STD is_constant_evaluated())
+	{
+		::operator delete(ptr);
+	} else
+#endif // _HAS_CXX20
+	{
+#if defined(__i686__) || defined(__x864_64__)
+		if (bytes >= _Big_allocation_threshold) _Adjust_manually_vector_aligned<Traits>(bytes);
+#endif // defined(__i686__) || defined(__x86_64__)
+		::operator delete(ptr, bytes);
+	}
+}
+
+#undef _HAS_ALIGNED_NEW
+
+template<typename T>
+class allocator
+{
+public:
+	static_assert(!is_const_v<T>, "The C++ standard forbids containers of const elements "
+								  "because allocator<const T> is ill-formed.");
+
+	using _From_primary = allocator;
+
+	typedef T value_type;
+
+	typedef T *pointer _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS;
+	typedef T& reference _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS;
+	typedef const T *const_pointer _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS;
+	typedef const T& const_reference _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS;
+
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef true_type propagate_on_container_move_assingment;
+
+#if _HAS_DEPRECATED_ALLOCATOR_MEMBERS
+	using is_always_equal _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS = true_type;
+
+	template<typename U>
+	struct _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS rebind {
+		typedef allocator<U> other;
+	};
+
+public:
+	_CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS _NODISCARD T* address(T& x) const noexcept
+	{
+		return _STD addressof(x);
+	}
+
+	_NODISCARD _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS _NODISCARD const T *address(const T& x) const noexcept
+	{
+		return _STD addressof(x);
+	}
+#endif // _HAS_DEPRECATED_ALLOCATOR_MEMBERS
+
+	allocator() noexcept {}
+	constexpr allocator(const allocator&) noexcept = default;
+	template<typename U>
+	constexpr allocator(const allocator<U>&) noexcept {}
+	_CONSTEXPR20 ~allocator()       = default;
+	_CONSTEXPR20 allocator& operator=(const allocator&) = default;
+
+	_CONSTEXPR20 void deallocate(T *const ptr, const size_t count)
+	{
+		_Deallocate<_New_alignof<T>>(ptr, sizeof(T) * count);
+	}
+
+	_CONSTEXPR20 T *allocate(const size_t count)
+	{
+		return static_cast<T*>(_Allocate<_New_alignof<T>>(_Get_size_of_n<sizeof(T)>(count)));
+	}
+
+#if _HAS_DEPRECATED_ALLOCATOR_MEMBERS
+	_CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS _NODISCARD T* allocate(const size_t count, const void *)
+	{
+		return allocate(count);
+	}
+
+	template<typename U, typename... Args>
+	_CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS void construct(U *const ptr, Args&&... args)
+	{
+		::new (Voidify_iter(ptr)) U(_STD forward<Args>(args)...);
+	}
+
+	template<typename U>
+	 _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS void destroy(U *const ptr)
+	{
+		ptr->~U();
+	}
+
+	 _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS _NODISCARD size_t max_size() const noexcept
+	{
+		return static_cast<size_t>(-1) / sizeof(T);
+	}
+#endif // _HAS_DEPRECATED_ALLOCATOR_MEMBERS
+};
+
+template<>
+class allocator<void>
+{
+public:
+	typedef void *pointer;
+	typedef const void *const_pointer;
+	typedef void value_type;
+
+	template<typename U> struct rebind {
+		typedef allocator<U> other;
+	};
+};
+_STD_END
+
+#endif // _XMEMORY
+

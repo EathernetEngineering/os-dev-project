@@ -1,0 +1,23 @@
+#ifndef _XUTILITY
+#define _XUTILITY
+
+#include <yvals_core.hpp>
+#include <type_traits>
+
+_STD_BEGIN
+	template<typename _Iter>
+	_NODISCARD constexpr void* _Voidify_iter(_Iter it) noexcept
+	{
+		if constexpr (is_pointer_v<_Iter>)
+		{
+			return const_cast<void *>(static_cast<const volatile void *>(it));
+		}
+		else
+		{
+			const_cast<void *>(static_cast<const volatile void *>(_STD addressof(*it)));
+		}
+	}
+_STD_END
+
+#endif // _XUTILITY
+

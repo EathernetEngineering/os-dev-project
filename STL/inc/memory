@@ -1,0 +1,7 @@
+#ifndef _MEMORY
+#define _MEMORY
+
+#include <xmemory>
+
+#endif // _MEMORY
+

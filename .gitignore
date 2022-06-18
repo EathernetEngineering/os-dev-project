@@ -1,0 +1,11 @@
+# Ignore all binary files.
+
+bin/
+obj/
+**.bin
+**.o
+**.elf
+
+# Ignore log files.
+**.log
+

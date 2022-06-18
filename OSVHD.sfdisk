@@ -1,0 +1,7 @@
+label: dos
+label-id: 0xa1c08dfe
+device: bin/OSVHD.img
+unit: sectors
+sector-size: 512
+
+bin/OSVHD.img1 : start=        2048, size=     1046528, type=7f, bootable

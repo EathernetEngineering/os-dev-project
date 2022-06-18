@@ -1,0 +1,15 @@
+#ifndef _UTILITY
+#define _UTILITY
+
+#include <xutility>
+
+_STD_BEGIN
+template<typename T>
+_NODISCARD constexpr const T& (max)(const T& left, const T& right) noexcept(noexcept(left < right))
+{
+	return left < right ? right : left;
+}
+_STD_END
+
+#endif // _UTILITY
+

@@ -1,0 +1,74 @@
+#ifndef __TYPE_TRAITS_HPP
+#define __TYPE_TRAITS_HPP
+
+#include "libc/yvals_core.hpp"
+#include "libc/stddef.hpp"
+
+_STD_BEGIN
+	template<typename>
+	_INLINE_VAR constexpr bool is_lvalue_reference_v = false;
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_lvalue_reference_v<T&> = true;
+
+	template<typename T>
+	struct is_lvalue_reference : bool_constant<is_lvalue_reference_v<T>> {};
+
+	template<typename>
+	_INLINE_VAR constexpr bool is_rvalue_reference_v = false;
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_rvalue_reference_v<T&&> = true;
+
+	template<typename T>
+	struct is_rvalue_reference : bool_constant<is_rvalue_reference_v<T>> {};
+
+	template<typename>
+	_INLINE_VAR constexpr bool is_reference_v = false;
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_reference_v<T&> = true;
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_reference_v<T&&> = true;
+
+	template<typename T>
+	struct is_reference : bool_constant<is_reference_v<T>> {};
+
+	template<typename>
+	_INLINE_VAR constexpr bool is_pointer_v = false;
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_pointer_v<T* const> = true;
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_pointer_v<T* volatile> = true;
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_pointer_v<T* const volatile> = true;
+
+	template<typename T>
+	struct is_pointer : bool_constant<is_pointer_v<T>> {};
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_const_v = false;
+
+	template<typename T>
+	_INLINE_VAR constexpr bool is_const_v<const T> = true;
+
+	template<typename T>
+	_NODISCARD constexpr T&& forward(remove_reference_t<T>& arg) noexcept
+	{
+		return static_cast<T&&>(arg);
+	}
+
+	template<typename T>
+	_NODISCARD constexpr T&& forward(remove_reference_t<T>&& arg) noexcept
+	{
+		static_assert(!is_lvalue_reference_v<T>, "Bad forward call");
+		return static_cast<T&&>(arg);
+	}
+_STD_END
+
+#endif
+
