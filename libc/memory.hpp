@@ -1,6 +1,8 @@
 #ifndef _MEMORY_HPP
 #define _MEMORY_HPP
 
+#define MAX_E820_ENTRIES 64
+
 typedef struct {
 	union {
 		struct {
@@ -113,22 +115,23 @@ typedef struct {
 	uint32_t extendedAttributes;
 } __attribute__((__packed__)) MemoryDescriptor;
 
-typedef struct _MemoryMap {
-	uint32_t numEntries;
-	MemoryDescriptor *entries;
-
-	_MemoryMap()
-		: numEntries(*(uint32_t*)(0x500)), entries((MemoryDescriptor*)(0x504))
-	{
-	}
-} MemoryMap;
-
-void setupPaging();
-
-MemoryMap *getMemoryMap();
-
 void *memcpy(void *dest, const void *src, unsigned long length);
 void *memset(void *dest, int val, long length);
+
+typedef struct _MemoryMap {
+	uint16_t blockAbove1M;
+	uint16_t blocksAbove1MUnder15M;
+	uint16_t chunksAbove16M;
+	uint32_t numE820Entries;
+	MemoryDescriptor e820Entries[MAX_E820_ENTRIES];
+
+	_MemoryMap()
+	{
+		memcpy(this, (void*)0x500, sizeof(_MemoryMap));
+	}
+} __attribute__((packed)) MemoryMap;
+
+void setupPaging();
 
 void *kmalloc(size_t size);
 

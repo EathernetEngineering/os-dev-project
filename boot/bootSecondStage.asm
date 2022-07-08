@@ -16,55 +16,11 @@ call printStringR
 ; Get memory map.
 ; store it at 0x500
 GetMemoryMap:
-	mov di, 0x504
-	mov bx, 0x00
+	xor bx, bx
 	mov es, bx
-	xor ebx, ebx
-	xor si, si
-	mov edx, 0x0534D4150
-	mov eax, 0xE820
-	mov BYTE [es:di + 20], 0x01
-	mov ecx, 24
-	int 0x15
-	jc SHORT .failed
-
-	mov edx, 0x0534D4150
-	cmp edx, eax
-	jne SHORT .error
-	test ebx, ebx
-	je SHORT .error
-	jmp SHORT .jmpin
-
-.loop:
-	mov eax, 0xE820
-	mov BYTE [es:di + 20], 0x01
-	mov ecx, 24
-	int 0x15
-	jc SHORT .finished
-	mov edx, 0x0543D4150
-
-.jmpin:
-	jcxz .skipent
-	cmp cl, 20
-	jbe SHORT .notext
-	test BYTE [es:di + 20], 1
-	je SHORT .skipent
-
-.notext:
-	mov ecx, [es:di + 8]
-	or ecx, [es:di + 12]
-	jz .skipent
-	add si, 1
-	add di, 24
-
-.skipent:
-	test ebx, ebx
-	jne SHORT .loop
-
-.finished:
-	mov edx, 0x500
-	mov [es:edx], si
-	clc
+	mov di, 0x500
+	call get_memory_maps
+	jc .error
 
 	mov ax, 0x1000
 	mov es, ax
@@ -74,17 +30,11 @@ GetMemoryMap:
 
 	jmp enableA20
 
-.failed:
-	mov bx, MSG_MEMORY_MAP_FAILED
-	call printStringR
-	jmp enableA20
-
 .error:
-	mov edx, 0x500
-	mov [es:edx], si
 	clc
 
-	mov [es:di], ah
+	mov ax, 0x1000
+	mov es, ax
 
 	mov bx, MSG_MEMORY_MAP_ERROR
 	call printStringR
@@ -298,21 +248,21 @@ longModeEnabled:
 ; into specified location. Finally we call address sepcifed in link script
 loadKernel:
 	; Check magic number
-	mov eax, DWORD [0x10500]
+	mov eax, DWORD [0x11000]
 	mov ebx, DWORD [ELF_MAGIC_NUMBER]
 	cmp eax, ebx
 	jne .failedLoad
 
 	; Get location of program header (0x10500 file + 0x20 index of e_pfoff)
-	mov rcx, [0x10520]
+	mov rcx, [0x11020]
 	; make pointer from offset, 0x10500 location of file
-	add rcx, 0x10500
+	add rcx, 0x11000
 	; Get size of program (rcx program header + 0x28 index of p_memsz)
 	mov rbx, [rcx+0x28]
 	; Get offset of start of program (rcx program header + 0x08 index of p_offset)
 	mov rdx, [rcx+0x08]
 	; make pointer from offset, 0x10500 location of file
-	add rdx, 0x10500
+	add rdx, 0x11000
 
 	; Clear index register
 	xor rdi, rdi
@@ -329,7 +279,7 @@ loadKernel:
 
 .loaded:
 	; Load address of entry point then call it (0x10500 file + 0x18 e_entry)
-	mov rax, [0x10518]
+	mov rax, [0x11018]
 	call rax
 
 	jmp $
@@ -337,6 +287,7 @@ loadKernel:
 .failedLoad:
 jmp $
 
+%include "boot/memoryMap.asm"
 %include "boot/print.asm"
 %include "boot/gdt.asm"
 
@@ -348,5 +299,6 @@ MSG_COULD_NOT_ENABLE_A20 db "Failed to enable A20 line.", 0x0D, 0x0A, 0x00
 
 ELF_MAGIC_NUMBER db 0x7F, 'E', 'L', 'F'
 
-times 1280-($-$$) db 0x00 ; Padding with NULL from end of code to EOF to make file 0x500 (1280) bytes long
+; Padding with NOP from end of code to EOF to make file 0x1000 (4096) bytes long
+times 4096-($-$$) db 0x90
 

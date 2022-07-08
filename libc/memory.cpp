@@ -49,13 +49,6 @@ void setupPaging()
 	}
 }
 
-MemoryMap *getMemoryMap()
-{
-	MemoryMap *map = (MemoryMap *)0x500;
-	map->entries = (MemoryDescriptor *)0x504;
-	return map;
-}
-
 void bcopy(const void *src, void *dest, unsigned long len)
 {
 	if (dest < src)

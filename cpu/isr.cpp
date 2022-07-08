@@ -41,6 +41,7 @@ void isrInstall()
 {
 	kprint("Initalizing interrupts.\n");
 	zeroIdt();
+	zeroMemory(_InterruptHandlers, sizeof(_InterruptHandlers));
 
 	setIdtGate(0,  (uint64_t)isr0);
 	setIdtGate(1,  (uint64_t)isr1);

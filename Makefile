@@ -83,6 +83,12 @@ debug-vnc: bin/os-image.bin obj/kerneld.elf
 	$(GDB) -ex "target remote localhost:1234" \
 		-ex "symbol-file obj/kerneld.elf"
 
+obj/:
+	mkdir $@
+
+bin/:
+	mkdir $@
+
 obj/%.o: */%.c $(C_HEADERS)
 	$(CC) $(CFLAGS) $(DEFINES) -ffreestanding -c $< -o $@
 
