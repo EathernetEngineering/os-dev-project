@@ -1,6 +1,6 @@
 #include "cpu/acpi.hpp"
 
-#include "drivers/screen.hpp"
+#include "kernel/kprint.hpp"
 
 #include "libc/memory.hpp"
 #include "libc/string.hpp"
@@ -14,9 +14,7 @@ uintptr_t GetRsdtBaseAddress()
 
 void initAcpi()
 {
-	kprint("Initalizing kernel ACPI features.\n");
 	// Find the rsdp in memory.
-
 	RsdpDescriptor *descriptor = NULL;
 
 	for (uintptr_t location = 0x000E0000; location < 0x000FFFFF; location += 16)
@@ -30,7 +28,8 @@ void initAcpi()
 
 	if (descriptor == NULL)
 	{
-		kprint("Failed to find rsd\n");
+		// TODO: handle error better
+		kerr("Failed to find RSDP");
 		return;
 	}
 
@@ -43,7 +42,8 @@ void initAcpi()
 	}
 	if ((sum & 0xFF) != 0)
 	{
-		kprint("Checksum Failed\n");
+		// TODO: handle error better
+		kerr("RSDT descriptor checksum failed");
 		return;
 	}
 
@@ -60,7 +60,8 @@ void initAcpi()
 		}
 		if ((sum & 0xFF) != 0)
 		{
-			kprint("Checksum 2.0(+) Failed\n");
+		// TODO: handle error better
+		kerr("RSDT descriptor 2 checksum failed");
 			return;
 		}
 		_RootSdt = (AcpiSdtHeader *)(((RsdpDescriptor2 *)descriptor)->xsdtAddress);

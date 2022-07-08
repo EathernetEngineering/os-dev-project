@@ -1,10 +1,4 @@
-#include "drivers/serial.hpp"
-#include "drivers/screen.hpp"
-
-#include "cpu/io.hpp"
-#include "cpu/isr.hpp"
-
-#include "libc/function.hpp"
+#include "portio/serial.hpp"
 
 int serial_initialized = 0;
 

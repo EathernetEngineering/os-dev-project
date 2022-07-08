@@ -2,7 +2,7 @@
 #include "libc/function.hpp"
 #include "libc/stdlib.hpp"
 
-#include "drivers/screen.hpp"
+#include "kernel/kprint.hpp"
 
 #include "cpu/isr.hpp"
 
@@ -47,38 +47,6 @@ void setupPaging()
 	{
 		_Pd->value[i].value = 3 | (uint64_t)_ppPt[i];
 	}
-}
-
-void bcopy(const void *src, void *dest, unsigned long len)
-{
-	if (dest < src)
-	{
-		const char *firsts = (const char*)src;
-		char *firstd = (char*)dest;
-		while (len--)
-			*firstd++ = *firsts++;
-	}
-	else
-	{
-		const char *lasts = (const char*)src + (len-1);
-		char *lastd = (char*)dest + (len-1);
-		while (len--)
-			*lastd-- = *lasts--;
-	}
-}
-
-void *memcpy(void *out, const void *in, unsigned long length)
-{
-	bcopy(in, out, length);
-	return out;
-}
-
-void *memset(void *dest, int val, long length)
-{
-	unsigned char *ptr = (unsigned char*)dest;
-	while (length-- > 0)
-		*ptr++ = val;
-	return dest;
 }
 
 void pageFaultHandler(registers_t* r)

@@ -1,63 +1,94 @@
-C_SOURCES := $(wildcard kernel/*.c drivers/*.c cpu/*.c libc/*.c runtime/*.c)
-C_HEADERS := $(wildcard kernel/*.h drivers/*.h cpu/*.h libc/*.h runtime/*.h)
-CXX_SOURCES := $(wildcard kernel/*.cpp drivers/*.cpp cpu/*.cpp libc/*.cpp runtime/*.cpp)
-CXX_HEADERS := $(wildcard kernel/*.hpp drivers/*.hpp cpu/*.hpp libc/*.hpp runtime/*.hpp)
+C_SOURCES := $(wildcard kernel/*.c cpu/*.c libc/*.c runtime/*.c)
+C_HEADERS := $(wildcard kernel/*.h cpu/*.h libc/*.h runtime/*.h)
+CXX_SOURCES := $(wildcard kernel/*.cpp cpu/*.cpp libc/*.cpp runtime/*.cpp)
+CXX_HEADERS := $(wildcard kernel/*.hpp cpu/*.hpp libc/*.hpp runtime/*.hpp)
 
 COBJECTS := $(patsubst %.c,obj/%.o,$(notdir $(C_SOURCES))) obj/interrupt.o
 CXXOBJECTS := $(patsubst %.cpp,obj/%.o,$(notdir $(CXX_SOURCES)))
 OBJECTS := $(COBJECTS) $(CXXOBJECTS)
 
-TARGET := x86_64
+export PROJROOTDIR := $(CURDIR)
 
-CC := /usr/x86_64elfgcc/bin/x86_64-elf-gcc
-CXX := /usr/x86_64elfgcc/bin/x86_64-elf-g++
-AS := /usr/x86_64elfgcc/bin/x86_64-elf-as
-AR := /usr/x86_64elfgcc/bin/x86_64-elf-ar
-LD := /usr/x86_64elfgcc/bin/x86_64-elf-ld
+export TARGET := x86_64
 
-OBJCOPY := /usr/x86_64elfgcc/bin/x86_64-elf-objcopy
+export CC := /usr/x86_64elfgcc/bin/x86_64-elf-gcc
+export CXX := /usr/x86_64elfgcc/bin/x86_64-elf-g++
+export AS := /usr/x86_64elfgcc/bin/x86_64-elf-as
+export AR := /usr/x86_64elfgcc/bin/x86_64-elf-ar
+export LD := /usr/x86_64elfgcc/bin/x86_64-elf-ld
 
-GDB := /usr/x86_64elfgcc/bin/x86_64-elf-gdb
+export OBJCOPY := /usr/x86_64elfgcc/bin/x86_64-elf-objcopy
 
-CFLAGS := -g -mcmodel=large -mno-red-zone -mno-sse -mno-mmx -mno-sse2 -fexceptions -fasynchronous-unwind-tables -Isysdeps/$(TARGET) -I$(CURDIR) -include stdint.h -include stddef.h -include stdbool.h -Wall -Wextra -Werror
+export GDB := /usr/x86_64elfgcc/bin/x86_64-elf-gdb
 
-CXXFLAGS := -g -std=c++17 -mcmodel=large -mno-red-zone -mno-sse -mno-mmx -mno-sse2 -fexceptions -fasynchronous-unwind-tables -Isysdeps/$(TARGET) -I$(CURDIR) -include stdint.h -include stddef.h -include stdbool.h -Wall -Wextra -Werror
+CFLAGS := -g -mcmodel=large -mno-red-zone -mno-sse -mno-sse2 \
+		  -mno-mmx -fexceptions -fasynchronous-unwind-tables \
+		  -Isysdeps/$(TARGET) -I$(CURDIR) -include stdint.h \
+		  -include stddef.h -include stdbool.h -Wall -Wextra -Werror
+
+CXXFLAGS := -g -std=c++17 -mcmodel=large -mno-red-zone -mno-sse -mno-sse2 \
+			-mno-mmx -fexceptions -fasynchronous-unwind-tables \
+			-Isysdeps/$(TARGET) -I$(CURDIR) -include stdint.h -Wall -Wextra \
+			-Werror
 
 DEFINES := -D __PHYSICAL_ADDRESS_EXTENSION__=1
 
+DRIVERS := drivers/portio/bin/portio.so drivers/terminal/bin/terminal.so \
+			drivers/graphics/bin/graphics.so
+STDLIBRARIES := STL/bin/libstdc++.a
+
+LIBRARIES := $(DRIVERS) $(STDLIBRARIES)
+
 .PHONY: all
-all: bin/os-image.bin obj/kerneld.elf obj/kernel.elf bin/OSVHD.img STL/bin/libstdc++.a
+all: bin/os-image.bin obj/kerneld.elf obj/kernel.elf \
+	$(LIBRARIES)
 
 bin/os-image.bin: obj/boot.bin obj/bootSecondStage.bin obj/kernel.elf
 	cat $^ > $@
 	dd if=/dev/zero of=$@ bs=1 count=1 seek=1548288
 	chmod +x $@
 
-obj/kerneld.elf: linkScript.ld obj/kernel_entry.o $(OBJECTS)
-	$(LD) -o $@ -N -T $^
+obj/kerneld.elf: linkScript.ld obj/kernel_entry.o $(OBJECTS) $(DRIVERS)
+	$(LD) -o $@ -N -T linkScript.ld obj/kernel_entry.o $(OBJECTS)
 
 obj/kernel.elf: obj/kerneld.elf
 	$(OBJCOPY) -S $^ $@
 
-bin/OSVHD.img: obj/boot.bin obj/bootSecondStage.bin obj/kernel.elf
-	dd if=/dev/zero of=$@ bs=1M count=512
-	sfdisk $@ < OSVHD.sfdisk
-	mkdir /mnt/osvhd
-	
+
+bin/OSVHD.img: obj/kernel.elf $(DRIVERS)
+	sudo dd if=/dev/zero of=$@ bs=1M count=1024
+	sudo sfdisk $@ < OSVHD.sfdisk
+	yes | sudo mkfs.ext4 $@
+	-sudo mkdir /mnt/osvhd
+	sudo mount -t auto -o loop $@ /mnt/osvhd
+	sudo cp obj/kernel.elf $(DRIVERS) /mnt/osvhd/
+	sudo umount /mnt/osvhd
+	-sudo rm -rf /mnt/osvhd
 
 STL/bin/libstdc++.a:
 	$(MAKE) -C STL/
 
+drivers/portio/bin/portio.so:
+	$(MAKE) -C drivers/ portio
+
+drivers/terminal/bin/terminal.so:
+	$(MAKE) -C drivers/ terminal
+
+drivers/graphics/bin/graphics.so:
+	$(MAKE) -C drivers/ graphics
+
 .PHONY: run
 run: bin/os-image.bin
-	qemu-system-x86_64 -chardev vc,id=serial0,logfile=serial0.log,signal=off \
+	qemu-system-x86_64 \
+		-chardev vc,id=serial0,logfile=serial0.log,signal=off \
 		-serial chardev:serial0 \
 		-m size=10G \
 		-drive file=bin/os-image.bin,if=ide,format=raw
 
 .PHONY: debug
 debug: bin/os-image.bin obj/kerneld.elf
-	qemu-system-x86_64 -s -S -chardev vc,id=serial0,logfile=serial0.log,signal=off \
+	qemu-system-x86_64 -s -S \
+		-chardev vc,id=serial0,logfile=serial0.log,signal=off \
 		-no-reboot \
 		-D qemu.log -d int,cpu_reset,guest_errors \
 		-serial chardev:serial0 \
@@ -69,14 +100,16 @@ debug: bin/os-image.bin obj/kerneld.elf
 
 .PHONY: run-vnc
 run-vnc: bin/os-image.bin
-	qemu-system-x86_64 -vnc :0 -chardev stdio,id=serial0,logfile=serial0.log,signal=off \
+	qemu-system-x86_64 -vnc :0 \
+		-chardev stdio,id=serial0,logfile=serial0.log,signal=off \
 		-serial chardev:serial0 \
 		-m size=10G \
 		-drive file=bin/os-image.bin,if=ide,format=raw
 
 .PHONY: debug-vnc
 debug-vnc: bin/os-image.bin obj/kerneld.elf
-	qemu-system-x86_64 -s -vnc :0 -chardev stdio,id=serial0,logfile=serial0.log,signal=off \
+	qemu-system-x86_64 -s -vnc :0 \
+		-chardev stdio,id=serial0,logfile=serial0.log,signal=off \
 		-serial chardev:serial0 \
 		-m size=10G \
 		-drive file=bin/os-image.bin,if=ide,format=raw & \
@@ -104,8 +137,18 @@ obj/%.o: */%.S
 obj/%.bin: */%.asm
 	nasm $< -fbin -o $@
 
-.PHONY: clean
+.PHONY: clean cleanall cleanstl cleanlibc cleandrivers
 clean:
 	rm -f bin/* obj/*
+
+cleanall: clean cleanstl cleanlibc cleandrivers
+
+cleanstl:
 	$(MAKE) -C STL/ clean
+
+cleanlibc:
+	#$(MAKE) -C libc/ clean
+
+cleandrivers:
+	$(MAKE) -C drivers/ cleanall
 

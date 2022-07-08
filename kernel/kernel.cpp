@@ -1,16 +1,16 @@
 #include "kernel/kernel.hpp"
+#include "kernel/kprint.hpp"
 
 #include "cpu/acpi.hpp"
 #include "cpu/isr.hpp"
-
-#include "drivers/screen.hpp"
 
 #include "libc/function.hpp"
 #include "libc/memory.hpp"
 
 extern "C" void kentry()
 {
-	kprint("Entered kernel.\n");
+	kprint("Entered kentry()\n");
+
 	setupPaging();
 
 	initAcpi();
@@ -18,7 +18,7 @@ extern "C" void kentry()
 	isrInstall();
 	irqInstall();
 
-	kprint("Testing interrupts..\n\n");
+	kprint("Testing interrupts\n");
 	__asm__ volatile ("int $3");
 	__asm__ volatile ("int $15");
 
@@ -30,10 +30,7 @@ extern "C" void kentry()
 	}
 	*/
 
-	MemoryMap map;
-	UNUSED(map);
-
-	kprint("\nEntering event loop.\n");
+	kprint("Starting event loop\n");
 kentry_hlt:
 	__asm__ ("hlt");
 	goto kentry_hlt;

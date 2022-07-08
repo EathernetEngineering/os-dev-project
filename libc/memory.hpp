@@ -1,6 +1,9 @@
 #ifndef _MEMORY_HPP
 #define _MEMORY_HPP
 
+#include <stddef.h>
+#include "libc/string.hpp"
+
 #define MAX_E820_ENTRIES 64
 
 typedef struct {
@@ -115,9 +118,6 @@ typedef struct {
 	uint32_t extendedAttributes;
 } __attribute__((__packed__)) MemoryDescriptor;
 
-void *memcpy(void *dest, const void *src, unsigned long length);
-void *memset(void *dest, int val, long length);
-
 typedef struct _MemoryMap {
 	uint16_t blockAbove1M;
 	uint16_t blocksAbove1MUnder15M;
@@ -138,8 +138,6 @@ void *kmalloc(size_t size);
 #define container_of(ptr, type, member) ({ \
 		const typeof(((type*)0)->member)* __mptr = (ptr); \
 		(type*)((char*)__mptr - offsetof(type, member));})
-
-#define zeroMemory(ptr, length) memset(ptr, 0, length)
 
 #endif
 

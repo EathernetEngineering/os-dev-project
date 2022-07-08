@@ -1,7 +1,7 @@
 #include "libc/malloc_internal.hpp"
 #include "libc/memory.hpp"
 
-#include "drivers/screen.hpp"
+#include "kernel/kprint.hpp"
 
 MallocLinkedList* MallocLinkedList::s_pInstance = nullptr;
 
@@ -17,6 +17,7 @@ MallocLinkedList::MallocLinkedList(MallocLinkedListNode *head)
 	}
 	else
 	{
+		// TODO: Handle errors better.
 		kcrit("Only one instance of malloc linked list can exist!");
 	}
 }

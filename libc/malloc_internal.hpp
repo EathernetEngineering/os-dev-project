@@ -1,6 +1,8 @@
 #ifndef _MALLOC_INTERNAL_HPP
 #define _MALLOC_INTERNAL_HPP
 
+#include <stddef.h>
+
 struct MallocInfo
 {
 };

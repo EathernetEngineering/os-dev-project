@@ -1,12 +1,12 @@
 #include "cpu/idt.hpp"
-#include "libc/memory.hpp"
+#include "libc/string.hpp"
 
 idt_entry_t idt[IDT_ENTRIES];
 idt_ptr_t idt_ptr;
 
 void zeroIdt()
 {
-	zeroMemory(idt, sizeof(idt_entry_t) * IDT_ENTRIES);
+	ZeroMemory(idt, sizeof(idt_entry_t) * IDT_ENTRIES);
 }
 
 void setIdtGate(uint32_t n, uint64_t handler)
@@ -24,6 +24,6 @@ void setIdt()
 {
 	idt_ptr.base = (uint64_t)&idt;
 	idt_ptr.limit = IDT_ENTRIES * sizeof(idt_ptr_t) - 1;
-	__asm__ __volatile__("lidt (%0)" : : "r" (&idt_ptr));
+	__asm__ volatile ("lidt (%0)" : : "r" (&idt_ptr));
 }
 

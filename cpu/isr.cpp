@@ -2,13 +2,13 @@
 #include "cpu/idt.hpp"
 #include "cpu/io.hpp"
 
-#include "drivers/screen.hpp"
+#include "kernel/kprint.hpp"
 
 #include "libc/memory.hpp"
 #include "libc/stdlib.hpp"
 #include "libc/string.hpp"
 
-#include "cpuid.h"
+#include <cpuid.h>
 
 ///////////////////////////////////////////////////
 //// LOCAL VARIABLES //////////////////////////////
@@ -41,7 +41,7 @@ void isrInstall()
 {
 	kprint("Initalizing interrupts.\n");
 	zeroIdt();
-	zeroMemory(_InterruptHandlers, sizeof(_InterruptHandlers));
+	ZeroMemory(_InterruptHandlers, sizeof(_InterruptHandlers));
 
 	setIdtGate(0,  (uint64_t)isr0);
 	setIdtGate(1,  (uint64_t)isr1);

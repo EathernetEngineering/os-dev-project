@@ -3,8 +3,6 @@
 #include "libc/memory.hpp"
 #include "libc/string.hpp"
 
-#include "drivers/screen.hpp"
-
 const char _itoa_upper_digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const char _itoa_lower_digits[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 const bool _itoa_upper_case = true;
@@ -13,7 +11,8 @@ char *itoa(int64_t value, char str[], int base)
 {
 	if (base > 36 || base < 2)
 	{
-		kerr("only bases up to base 36 supported");
+		// TODO: Handle errors.
+		//kerr("only bases up to base 36 supported");
 	}
 
 	char digits[36];

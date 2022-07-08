@@ -1,6 +1,8 @@
 #ifndef _ACPI_H
 #define _ACPI_H
 
+#include <stddef.h>
+
 typedef struct
 {
 	char signature[8];

@@ -1,10 +1,16 @@
 #ifndef __DRIVERS__PORTS__H__
 #define __DRIVERS__PORTS_H__
 
+#include <stddef.h>
 
 //////////////////////////////////////////////////
 //// PORTS ///////////////////////////////////////
 //////////////////////////////////////////////////
+
+typedef struct
+{
+	;
+} device_t;
 
 uint8_t portByteIn(uint16_t port);
 void portByteOut(uint16_t port, uint8_t data);
