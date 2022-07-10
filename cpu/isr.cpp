@@ -7,6 +7,7 @@
 #include "libc/memory.hpp"
 #include "libc/stdlib.hpp"
 #include "libc/string.hpp"
+#include "libc/function.hpp"
 
 #include <cpuid.h>
 

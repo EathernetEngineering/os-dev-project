@@ -4,8 +4,6 @@
 #include <stddef.h>
 #include "libc/string.hpp"
 
-#define MAX_E820_ENTRIES 64
-
 typedef struct {
 	union {
 		struct {
@@ -108,28 +106,6 @@ typedef struct {
 typedef struct {
 	Pte value[MAX_PAGE_TABLE_ENTRIES];
 } __attribute__((aligned(0x1000))) PageTable;
-
-typedef struct {
-	uint32_t baseAddressLow;
-	uint32_t baseAddressHigh;
-	uint32_t lengthLow;
-	uint32_t lengthHigh;
-	uint32_t type;
-	uint32_t extendedAttributes;
-} __attribute__((__packed__)) MemoryDescriptor;
-
-typedef struct _MemoryMap {
-	uint16_t blockAbove1M;
-	uint16_t blocksAbove1MUnder15M;
-	uint16_t chunksAbove16M;
-	uint32_t numE820Entries;
-	MemoryDescriptor e820Entries[MAX_E820_ENTRIES];
-
-	_MemoryMap()
-	{
-		memcpy(this, (void*)0x500, sizeof(_MemoryMap));
-	}
-} __attribute__((packed)) MemoryMap;
 
 void setupPaging();
 

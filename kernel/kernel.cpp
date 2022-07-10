@@ -7,6 +7,8 @@
 #include "libc/function.hpp"
 #include "libc/memory.hpp"
 
+#include "libc/mmap.hpp"
+
 extern "C" void kentry()
 {
 	kprint("Entered kentry()\n");
@@ -29,6 +31,9 @@ extern "C" void kentry()
 		kprint(em);
 	}
 	*/
+
+	MemoryMap map;
+	sortMemoryMap(&map);
 
 	kprint("Starting event loop\n");
 kentry_hlt:

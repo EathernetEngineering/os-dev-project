@@ -114,7 +114,7 @@ get_map_e820:
 	xor eax, eax
 	rep stosd
 	mov di, [bp-2]
-.statIntLoop
+.statIntLoop:
 	add di, 4
 	mov edx, 0x0534D4150
 	mov eax, 0xE820

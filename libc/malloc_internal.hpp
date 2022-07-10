@@ -26,7 +26,7 @@ struct MallocLinkedListNode
 	} __attribute__((packed));
 
 	MallocLinkedListNodeHeader header;
-	size_t blockSize;
+	size_t size;
 	void *block;
 } __attribute__((packed));
 
@@ -38,9 +38,6 @@ class MallocLinkedList final
 
 	private:
 		MallocLinkedListNode *m_Head;
-
-	private:
-		static MallocLinkedList* s_pInstance;
 };
 
 #endif // _MALLOC_INTERNAL_HPP

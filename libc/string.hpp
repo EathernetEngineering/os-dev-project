@@ -15,7 +15,5 @@ int strcmp(char s1[], char s2[]);
 void int_to_ascii(int n, char str[]);
 void hex_to_ascii(int n, char str[]);
 
-#define ZeroMemory(ptr, length) memset(ptr, 0, length)
-
 #endif
 
