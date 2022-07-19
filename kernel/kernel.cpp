@@ -13,11 +13,11 @@ extern "C" void kentry()
 {
 	kprint("Entered kentry()\n");
 
+	isrInstall();
 	setupPaging();
 
 	initAcpi();
 
-	isrInstall();
 	irqInstall();
 
 	kprint("Testing interrupts\n");

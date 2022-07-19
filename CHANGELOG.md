@@ -8,6 +8,7 @@
 * Moved `ZeroMemory` to function.hpp
 * Moved structures related to memory maps to mmap.hpp
 * Renamed ‘libc’ to ‘klibc’
+* `setupPaging()` now maps 511MiB instead of 16MiB 
 
 
 ## Additions:
