@@ -9,8 +9,9 @@
 .type _start,@function
 .size _start,8
 _start:
-	call _init
 	call kentry
+	call _init
+	call kmain
 
 	/* We should panic and die a misrible death if we reach here */
 	nop

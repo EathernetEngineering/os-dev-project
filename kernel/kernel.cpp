@@ -15,11 +15,12 @@ extern "C" void kentry()
 
 	isrInstall();
 	setupPaging();
-
 	initAcpi();
-
 	irqInstall();
+}
 
+extern "C" void kmain()
+{
 	kprint("Testing interrupts\n");
 	__asm__ volatile ("int $3");
 	__asm__ volatile ("int $15");

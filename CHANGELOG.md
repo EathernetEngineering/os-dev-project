@@ -23,6 +23,7 @@
 * Added file ‘init.hpp’ to klibc, with an inline function to call init functions for all other files in klibc which need to be initalized
 * Added `malloc`
 * Added linking to libgcc
+* Added `kentry()` and moved all critical initialization functions there, and renamed the original `kentry` `kmain`
 
 
 ## Deletions:
