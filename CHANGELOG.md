@@ -7,6 +7,7 @@
 
 * Moved `ZeroMemory` to function.hpp
 * Moved structures related to memory maps to mmap.hpp
+* Renamed ‘libc’ to ‘klibc’
 
 
 ## Additions:
@@ -14,9 +15,13 @@
 
 
 * Added changelog
+* Added function `swap`. Templated to take any type. Both parameters ust be the same type
 * Added function `sort` to sort an array of integers. Internally uses Quicksort
 * Added mmap.hpp and mmap.cpp
     * Added function to sort e820 map
+* Added file ‘init.hpp’ to klibc, with an inline function to call init functions for all other files in klibc which need to be initalized
+* Added `malloc`
+* Added linking to libgcc
 
 
 ## Deletions:
@@ -31,6 +36,7 @@
 
 
 * Fixed missing colon on label in boot/memoryMap.asm
+* Fixed bug causing the first 32 k of the disk being read twice
 
 
 ---
@@ -40,5 +46,6 @@
 
 
 
-* Makefile does not recompile bootSecondStage if included files are changed
+* Makefile does not recompile bootSecondStage if dependencies are changed
+* Reqires specific gcc version, and libgcc at specific path
 

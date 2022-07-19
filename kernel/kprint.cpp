@@ -1,10 +1,10 @@
-#include <kernel/kprint.hpp>
+#include "kernel/kprint.hpp"
 
 #include <stddef.h>
-#include <libc/string.hpp>
-#include <libc/memory.hpp>
+#include "klibc/string.hpp"
+#include "klibc/memory.hpp"
 
-#include <cpu/io.hpp>
+#include "cpu/io.hpp"
 
 int get_cursor_offset();
 void set_cursor_offset(int offset);
@@ -133,7 +133,7 @@ void kprint_backspace()
 }
 
 int print_char(char c, int col, int row, char attr) {
-	static unsigned char *vidmem =  s_VgaBaseAddr;
+	unsigned char *vidmem =  s_VgaBaseAddr;
 	if (!attr) attr = vgaColor(VGA_COLOR_LIGHT_GRAY, VGA_COLOR_BLACK);
 
 	if (col >= static_cast<int>(s_VgaMaxCols) || row >= static_cast<int>(s_VgaMaxRows)) {

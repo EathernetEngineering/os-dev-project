@@ -1,5 +1,5 @@
-#ifndef _MATH_H
-#define _MATH_H
+#ifndef _KLIBC_MATH_HPP
+#define _KLIBC_MATH_HPP
 
 int abs(int n);
 long int labs(long int n);

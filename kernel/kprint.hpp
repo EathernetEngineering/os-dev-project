@@ -3,10 +3,13 @@
 
 #include <stddef.h>
 
-//static constexpr uint8_t *s_VgaBaseAddr    = (uint8_t*)(void*)0xB8000;
 #define s_VgaBaseAddr reinterpret_cast<uint8_t *>(0xB8000)
-static constexpr uint32_t s_VgaMaxRows     = 25;
-static constexpr uint32_t s_VgaMaxCols     = 80;
+#define s_VgaMaxRows 25
+#define s_VgaMaxCols 80
+
+//static constexpr uint8_t *s_VgaBaseAddr    = (uint8_t*)(void*)0xB8000;
+//static constexpr uint32_t s_VgaMaxRows     = 25;
+//static constexpr uint32_t s_VgaMaxCols     = 80;
 
 typedef enum VgaColors : uint8_t
 {

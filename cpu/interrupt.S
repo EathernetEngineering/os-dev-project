@@ -1,3 +1,5 @@
+.section .text,"ax","progbits"
+
 .extern isr_handler
 .extern irq_handler
 

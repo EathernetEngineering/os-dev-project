@@ -1,4 +1,4 @@
-#include "libc/string.hpp"
+#include "klibc/string.hpp"
 
 void bcopy(const void *src, void *dest, size_t len)
 {

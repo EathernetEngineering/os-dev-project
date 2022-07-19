@@ -1,6 +1,6 @@
-#include "libc/memory.hpp"
-#include "libc/function.hpp"
-#include "libc/stdlib.hpp"
+#include "klibc/memory.hpp"
+#include "klibc/function.hpp"
+#include "klibc/stdlib.hpp"
 
 #include "kernel/kprint.hpp"
 

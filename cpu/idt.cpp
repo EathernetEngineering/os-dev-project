@@ -1,5 +1,5 @@
 #include "cpu/idt.hpp"
-#include "libc/function.hpp"
+#include "klibc/function.hpp"
 
 idt_entry_t idt[IDT_ENTRIES];
 idt_ptr_t idt_ptr;

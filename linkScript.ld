@@ -2,26 +2,27 @@ ENTRY(kentry)
 OUTPUT_FORMAT(elf64-x86-64)
 
 STARTUP(obj/kernel_entry.o)
-
-OUTPUT(obj/kernel.elf)
+ENTRY(_start)
 
 SECTIONS
 {
-	.text 0x100000 : {
+	. = 0x1M;
+
+	.text : ALIGN(4K) {
 		*(.text)
 	}
 
-	.rodata : {
+	.rodata : ALIGN(4K) {
 		*(.rodata)
 	}
 
-	.data : {
+	.data : ALIGN(4K) {
 		*(.data)
 	}
 
-	.bss : {
-		*(.bss)
+	.bss : ALIGN(4K) {
 		*(COMMON)
+		*(.bss)
 	}
 }
 

@@ -1,8 +1,8 @@
-#ifndef _LIBC_MMAP_HPP
-#define _LIBC_MMAP_HPP
+#ifndef _KLIBC_MMAP_HPP
+#define _KLIBC_MMAP_HPP
 
-#include "libc/string.hpp"
-#include "libc/function.hpp"
+#include "klibc/string.hpp"
+#include "klibc/function.hpp"
 
 #define MAX_E820_ENTRIES 64
 

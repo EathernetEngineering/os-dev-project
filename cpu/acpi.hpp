@@ -38,5 +38,7 @@ void initAcpi();
 
 uintptr_t getAcpiSdt(const char *signature);
 
+void acpiShutdown();
+
 #endif
 

@@ -1,7 +1,7 @@
-#include "libc/stdlib.hpp"
-#include "libc/math.hpp"
-#include "libc/memory.hpp"
-#include "libc/string.hpp"
+#include "klibc/stdlib.hpp"
+#include "klibc/math.hpp"
+#include "klibc/memory.hpp"
+#include "klibc/string.hpp"
 
 const char _itoa_upper_digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const char _itoa_lower_digits[] = "0123456789abcdefghijklmnopqrstuvwxyz";

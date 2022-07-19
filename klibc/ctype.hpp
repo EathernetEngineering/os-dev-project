@@ -1,5 +1,5 @@
-#ifndef _CTYPE_H
-#define _CTYPE_H
+#ifndef _KLIBC_CTYPE_HPP
+#define _KLIBC_CTYPE_HPP
 
 /*!
  * Tests character to see if it is an alphabetical character.

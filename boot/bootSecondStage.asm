@@ -241,7 +241,7 @@ longModeEnabled:
 
 
 ; Load elf of kernel.
-; File located at 0x10500, load program into memory in the way
+; File located at 0x11000, load program into memory in the way
 ; the liker specified
 ; First we need to check the magic number at the
 ; start of the file. Then we serch for copy from offset for memSiz bytes
@@ -253,15 +253,15 @@ loadKernel:
 	cmp eax, ebx
 	jne .failedLoad
 
-	; Get location of program header (0x10500 file + 0x20 index of e_pfoff)
+	; Get location of program header (0x11000 file + 0x20 index of e_pfoff)
 	mov rcx, [0x11020]
-	; make pointer from offset, 0x10500 location of file
+	; make pointer from offset, 0x11000 location of file
 	add rcx, 0x11000
 	; Get size of program (rcx program header + 0x28 index of p_memsz)
-	mov rbx, [rcx+0x28]
+	mov rbx, [rcx+0x20]
 	; Get offset of start of program (rcx program header + 0x08 index of p_offset)
 	mov rdx, [rcx+0x08]
-	; make pointer from offset, 0x10500 location of file
+	; make pointer from offset, 0x11000 location of file
 	add rdx, 0x11000
 
 	; Clear index register
@@ -278,11 +278,9 @@ loadKernel:
 	jl .loadLoop
 
 .loaded:
-	; Load address of entry point then call it (0x10500 file + 0x18 e_entry)
+	; Load address of entry point then call it (0x11000 file + 0x18 e_entry)
 	mov rax, [0x11018]
 	call rax
-
-	jmp $
 
 .failedLoad:
 jmp $

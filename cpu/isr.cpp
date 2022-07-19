@@ -4,10 +4,10 @@
 
 #include "kernel/kprint.hpp"
 
-#include "libc/memory.hpp"
-#include "libc/stdlib.hpp"
-#include "libc/string.hpp"
-#include "libc/function.hpp"
+#include "klibc/memory.hpp"
+#include "klibc/stdlib.hpp"
+#include "klibc/string.hpp"
+#include "klibc/function.hpp"
 
 #include <cpuid.h>
 

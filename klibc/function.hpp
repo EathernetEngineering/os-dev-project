@@ -1,7 +1,7 @@
-#ifndef _FUNCTION_H
-#define _FUNCTION_H
+#ifndef _KLIBC_FUNCTION_HPP
+#define _KLIBC_FUNCTION_HPP
 
-#include "libc/string.hpp"
+#include "klibc/string.hpp"
 
 #define UNUSED(param) (void)(param)
 #define ZeroMemory(ptr, length) memset(ptr, 0, length)

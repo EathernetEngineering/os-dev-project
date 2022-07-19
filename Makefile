@@ -1,11 +1,21 @@
-C_SOURCES := $(wildcard kernel/*.c cpu/*.c libc/*.c runtime/*.c)
-C_HEADERS := $(wildcard kernel/*.h cpu/*.h libc/*.h runtime/*.h)
-CXX_SOURCES := $(wildcard kernel/*.cpp cpu/*.cpp libc/*.cpp runtime/*.cpp)
-CXX_HEADERS := $(wildcard kernel/*.hpp cpu/*.hpp libc/*.hpp runtime/*.hpp)
+C_SOURCES := $(wildcard kernel/*.c cpu/*.c klibc/*.c )
+C_HEADERS := $(wildcard kernel/*.h cpu/*.h klibc/*.h )
+CXX_SOURCES := $(wildcard kernel/*.cpp cpu/*.cpp klibc/*.cpp)
+CXX_HEADERS := $(wildcard kernel/*.hpp cpu/*.hpp klibc/*.hpp)
 
 COBJECTS := $(patsubst %.c,obj/%.o,$(notdir $(C_SOURCES))) obj/interrupt.o
 CXXOBJECTS := $(patsubst %.cpp,obj/%.o,$(notdir $(CXX_SOURCES)))
 OBJECTS := $(COBJECTS) $(CXXOBJECTS)
+
+export LIBGCCPATH := /usr/x86_64elfgcc/lib/gcc/x86_64-elf/12.1.0/no-red-zone
+
+export CRTBEGIN := $(LIBGCCPATH)/crtbegin.o
+export CRTEND := $(LIBGCCPATH)/crtend.o
+
+CRTI := obj/crti.o
+CRTN := obj/crtn.o
+
+OBJLINKLIST := $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 
 export PROJROOTDIR := $(CURDIR)
 
@@ -21,15 +31,19 @@ export OBJCOPY := /usr/x86_64elfgcc/bin/x86_64-elf-objcopy
 
 export GDB := /usr/x86_64elfgcc/bin/x86_64-elf-gdb
 
+export LIBPATH := /usr/x86_64elfgcc/lib/gcc/x86_64-elf/12.1.0
+
 CFLAGS := -g -mcmodel=large -mno-red-zone -mno-sse -mno-sse2 \
 		  -mno-mmx -fexceptions -fasynchronous-unwind-tables \
 		  -Isysdeps/$(TARGET) -I$(CURDIR) -include stdint.h \
 		  -include stddef.h -include stdbool.h -Wall -Wextra -Werror
 
 CXXFLAGS := -g -std=c++17 -mcmodel=large -mno-red-zone -mno-sse -mno-sse2 \
-			-mno-mmx -fexceptions -fasynchronous-unwind-tables \
+			-mno-mmx -fno-exceptions -fasynchronous-unwind-tables \
 			-Isysdeps/$(TARGET) -I$(CURDIR) -include stdint.h -Wall -Wextra \
-			-Werror
+			-Werror -fno-rtti -fno-use-cxa-atexit
+
+LINKFLAGS := -lgcc -nostdlib
 
 DEFINES := -D __PHYSICAL_ADDRESS_EXTENSION__=1
 
@@ -48,12 +62,17 @@ bin/os-image.bin: obj/boot.bin obj/bootSecondStage.bin obj/kernel.elf
 	dd if=/dev/zero of=$@ bs=1 count=1 seek=1548288
 	chmod +x $@
 
-obj/kerneld.elf: linkScript.ld obj/kernel_entry.o $(OBJECTS) $(DRIVERS)
-	$(LD) -o $@ -N -T linkScript.ld obj/kernel_entry.o $(OBJECTS)
+obj/kerneld.elf: linkScript.ld obj/kernel_entry.o $(OBJLINKLIST) $(DRIVERS)
+	$(LD) -o $@ -N -T linkScript.ld $(LINKFLAGS) $(OBJLINKLIST) -L$(LIBGCCPATH)
 
 obj/kernel.elf: obj/kerneld.elf
 	$(OBJCOPY) -S $^ $@
 
+obj/crti.o: runtime/crti.S
+	$(AS) -o $@ $^
+
+obj/crtn.o: runtime/crtn.S
+	$(AS) -o $@ $^
 
 bin/OSVHD.img: obj/kernel.elf $(DRIVERS)
 	sudo dd if=/dev/zero of=$@ bs=1M count=1024
@@ -96,7 +115,7 @@ debug: bin/os-image.bin obj/kerneld.elf
 		-drive file=bin/os-image.bin,if=ide,format=raw & \
 	$(GDB) -ex "target remote localhost:1234" \
 		-ex "symbol-file obj/kerneld.elf" \
-		-ex "b kentry"
+		-ex "b _start"
 
 .PHONY: run-vnc
 run-vnc: bin/os-image.bin

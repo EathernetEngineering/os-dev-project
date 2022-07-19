@@ -3,7 +3,7 @@ STAGE_2_OFFSET equ 0x10000
 STAGE_2_SIZE equ 0x500
 STAGE_2_END equ (STAGE_2_OFFSET + STAGE_2_SIZE)
 
-; Set cs to 0x0000
+; Guarantee cs is set to 0x0000
 jmp 0x0000:start
 
 ; Intalize other segment registers and stack
@@ -59,7 +59,11 @@ push ax
 mov cl, 0x01
 mov ch, 0x00
 mov dx, [bp-2]
-mov bx, 0x7E00 ; 0x7E00 = 63 (0x3F) sectors.
+mov dh, 0x01
+mov bx, es
+add bx, (0x7C00 >> 4) ; 0x7C00 = 62 (0x3E) sectors.
+mov es, bx
+xor bx, bx
 
 int 0x13
 
@@ -103,7 +107,6 @@ MBR:
 	dd 0x00 ; Disk id
 	dw 0x00 ; Reserved
 
-partitionTable:
 ; Partition table entry format:
 ;   +----------+----------------+---------------------------------------+
 ;   |  Offset  |  Size (bytes)  |              Description              |
@@ -115,6 +118,7 @@ partitionTable:
 ;   | 0x08     | 4              | LBA partition start                   |
 ;   | 0x0C     | 4              | Number of sectors in partition        |
 ;   +----------+----------------+---------------------------------------+
+partitionTable:
 .entry1:
 	db 0x80
 	db 0x00, 0x01, 0x00

@@ -2,8 +2,8 @@
 
 #include "kernel/kprint.hpp"
 
-#include "libc/memory.hpp"
-#include "libc/string.hpp"
+#include "klibc/memory.hpp"
+#include "klibc/string.hpp"
 
 static AcpiSdtHeader *_RootSdt;
 
@@ -85,5 +85,10 @@ uintptr_t getAcpiSdt(const char *signature)
 		}
 	}
 	return (uintptr_t)-1;
+}
+
+void acpiShutdown()
+{
+	;; // TODO: shutdown using ACPI functions
 }
 

@@ -1,4 +1,4 @@
-#include "libc/ctype.hpp"
+#include "klibc/ctype.hpp"
 
 int isalpha(uint8_t c)
 {

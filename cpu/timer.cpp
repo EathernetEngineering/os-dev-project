@@ -2,7 +2,7 @@
 #include "cpu/isr.hpp"
 #include "cpu/io.hpp"
 
-#include "libc/function.hpp"
+#include "klibc/function.hpp"
 
 unsigned tick = 0;
 

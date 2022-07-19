@@ -1,5 +1,5 @@
-#ifndef _ENDIAN_H
-#define _ENDIAN_H
+#ifndef _KLIBC_ENDIAN_HPP
+#define _KLIBC_ENDIAN_HPP
 
 #define __LITTLE_ENDIAN		1234
 #define __BIG_ENDIAN		4321

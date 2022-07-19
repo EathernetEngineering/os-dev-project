@@ -4,10 +4,10 @@
 #include "cpu/acpi.hpp"
 #include "cpu/isr.hpp"
 
-#include "libc/function.hpp"
-#include "libc/memory.hpp"
+#include "klibc/function.hpp"
+#include "klibc/memory.hpp"
 
-#include "libc/mmap.hpp"
+#include "klibc/init.hpp"
 
 extern "C" void kentry()
 {
@@ -24,6 +24,8 @@ extern "C" void kentry()
 	__asm__ volatile ("int $3");
 	__asm__ volatile ("int $15");
 
+	initKlibc();
+
 	/*
 	try {
 		throw "C++ Exception Test\n";
@@ -32,13 +34,15 @@ extern "C" void kentry()
 	}
 	*/
 
-	MemoryMap map;
-	sortMemoryMap(&map);
-
 	kprint("Starting event loop\n");
 kentry_hlt:
 	__asm__ ("hlt");
 	goto kentry_hlt;
+}
+
+extern "C" void exit()
+{
+	acpiShutdown();
 }
 
 void user_input(char input[])

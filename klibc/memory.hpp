@@ -1,8 +1,8 @@
-#ifndef _MEMORY_HPP
-#define _MEMORY_HPP
+#ifndef _KLIBC_MEMORY_HPP
+#define _KLIBC_MEMORY_HPP
 
 #include <stddef.h>
-#include "libc/string.hpp"
+#include "klibc/string.hpp"
 
 typedef struct {
 	union {

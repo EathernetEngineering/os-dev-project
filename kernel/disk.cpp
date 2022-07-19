@@ -2,7 +2,7 @@
 
 #include "cpu/io.hpp"
 
-#include "libc/function.hpp"
+#include "klibc/function.hpp"
 
 #define DRIVE_DATA_PORT             0x1F0
 #define DRIVE_SECTOR_COUNT_PORT     0x1F2

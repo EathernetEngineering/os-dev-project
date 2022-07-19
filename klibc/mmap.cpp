@@ -1,7 +1,7 @@
-#include "libc/mmap.hpp"
+#include "klibc/mmap.hpp"
 
 #include "kernel/kprint.hpp"
-#include "libc/function.hpp"
+#include "klibc/function.hpp"
 
 MemoryMap *sortMemoryMap(MemoryMap *mapIn)
 {

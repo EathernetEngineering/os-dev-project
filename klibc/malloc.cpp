@@ -1,26 +1,70 @@
-#include "libc/malloc_internal.hpp"
-#include "libc/memory.hpp"
+#include "klibc/malloc_internal.hpp"
+#include "klibc/memory.hpp"
+#include "klibc/mmap.hpp"
 
 #include "kernel/kprint.hpp"
 
-MallocLinkedList* MallocLinkedList::s_pInstance = nullptr;
+static MemoryMap s_MemoryMap;
+static MallocBlockVector s_MallocAllocations(nullptr, 0);
 
-MallocLinkedList::MallocLinkedList(MallocLinkedListNode *head)
+MallocBlockVector::MallocBlockVector(void *baseAddress, size_t size)
 {
-	if (s_pInstance == nullptr)
+	m_Block = reinterpret_cast<MallocNode*>(baseAddress);
+	m_Size = size;
+}
+
+MallocBlockVector::~MallocBlockVector()
+{
+	if(m_Block)
 	{
-		m_Head = head;
-		m_Head->header.next = reinterpret_cast<MallocLinkedListNode*>(MALLOC_LINKED_LIST_NODE_TAIL_MAGIC_NUMBER);
-		m_Head->header.prev = reinterpret_cast<MallocLinkedListNode*>(MALLOC_LINKED_LIST_NODE_HEAD_MAGIC_NUMBER);
-		m_Head->blockSize = 0;
-		m_Head->block = MALLOC_BASE_ADDRESS;
-	}
-	else
-	{
-		// TODO: Handle errors better.
-		kcrit("Only one instance of malloc linked list can exist!");
+		//free(m_Block);
 	}
 }
+
+MallocBlockVector::Iterator MallocBlockVector::begin()
+{
+	return m_Block;
+}
+
+MallocBlockVector::Iterator MallocBlockVector::end()
+{
+	return &m_Block[m_Count];
+}
+
+void MallocBlockVector::EmplaceBack(MallocNode element)
+{
+	this->Emplace(this->end(), element);
+}
+
+void MallocBlockVector::Emplace(
+		MallocBlockVector::Iterator idx,
+		MallocNode element)
+{
+	if (m_Size * sizeof(MallocNode) < m_Count + 1)
+	{
+		return; // TODO: realloc
+	}
+
+	for (size_t i = m_Count; &m_Block[i] >= idx; i--)
+	{
+		m_Block[i] = m_Block[i - 1];
+	}
+	m_Count++;
+	*idx = element;
+}
+
+void initMalloc()
+{
+	fillMemoryMap(&s_MemoryMap);
+}
+
+//MallocLinkedList::ReverseIterator MallocLinkedList::rbegin()
+//{
+//}
+//
+//MallocLinkedList::ReverseIterator MallocLinkedList::rend()
+//{
+//}
 
 /*
  * For now there is a hard limit of 1GiB of memory that can be allocated
@@ -43,7 +87,7 @@ typedef struct {
 	char *block;
 } alloc_node_t;
 
-const uintptr_t base_free_mem_address = 0x200000;
+const ueintptr_t base_free_mem_address = 0x200000;
 const uintptr_t max_mem_address = base_free_mem_address + 0x200000;
 uintptr_t free_mem_address = base_free_mem_address;
 
