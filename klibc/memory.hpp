@@ -2,7 +2,7 @@
 #define _KLIBC_MEMORY_HPP
 
 #include <stddef.h>
-#include "klibc/string.hpp"
+#include "klibc/malloc_internal.hpp"
 
 typedef struct {
 	union {
