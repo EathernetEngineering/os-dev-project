@@ -52,18 +52,18 @@ MallocBlockVector::Iterator MallocBlockVector::end()
 
 void MallocBlockVector::Insert(MallocNode node)
 {
-	Iterator ittr = this->end() - 1;
-	if (node.block >  ittr->block)
+	Iterator itr = this->end() - 1;
+	if (node.block >  itr->block)
 	{
-		this->Emplace(ittr + 1, node);
+		this->Emplace(itr + 1, node);
 		return;
 	}
-	while (ittr != this->begin())
+	while (itr != this->begin())
 	{
-		if (node.block <= ittr->block) break;
-		--ittr;
+		if (node.block <= itr->block) break;
+		--itr;
 	}
-	this->Emplace(ittr, node);
+	this->Emplace(itr, node);
 }
 
 void MallocBlockVector::RemoveBack()
@@ -82,8 +82,9 @@ void MallocBlockVector::Remove(Iterator idx)
 
 void MallocBlockVector::Sort()
 {
-	int64_t(*partition)(MallocNode*, int64_t, int64_t) =
-		[](MallocNode array[], int64_t low, int64_t high){
+	auto partition =
+		[](MallocNode array[], int64_t low, int64_t high)->int64_t
+		{
 		uint64_t pivot = (uintptr_t)array[high].block;
 		int64_t i = low - 1;
 
@@ -100,45 +101,47 @@ void MallocBlockVector::Sort()
 	};
 
 	auto quicksort =
-		[partition](MallocNode array[], int64_t low, int64_t high)
-	{
-		auto quicksort_impl =
-			[](
-					MallocNode* array,
-					int64_t low,
-					int64_t high,
-					auto& quicksort_ref,
-					auto& partition) mutable
-			{
-				if (low >= high) return;
-				int64_t part = partition(array, low, high);
-				quicksort_ref(array, low, part - 1, quicksort_ref, partition);
-				quicksort_ref(array, part + 1, high, quicksort_ref, partition);
-			};
-		quicksort_impl(array, low, high, quicksort_impl, partition);
-	};
+		[](
+				MallocNode array[],
+				int64_t low,
+				int64_t high,
+				auto partition,
+				auto quicksort)->MallocNode*
+		{
+			if (low >= high) return array;
+			int64_t part = partition(array, low, high);
+			quicksort(array, low, part - 1, partition, quicksort);
+			quicksort(array, part + 1, high, partition, quicksort);
+			return array;
+		};
 
-	quicksort(m_Block, 0, m_Count - 1);
-}
-
-int binarySearch(MallocNode array[], void* addr, int low, int high)
-{
-	if (low > high) return -1;
-
-	int mid = (low + high) / 2;
-
-	if (array[mid].block == addr)
-		return mid;
-	else if (array[mid].block < addr)
-		return binarySearch(array, addr, mid + 1, high);
-	else
-		return binarySearch(array, addr, low, mid - 1);
+	quicksort(m_Block, 0, m_Count - 1, partition, quicksort);
 }
 
 MallocBlockVector::Iterator MallocBlockVector::Find(void* addr)
 {
+	auto search =
+		[](
+			MallocNode array[],
+			void* addr,
+			int64_t low,
+			int64_t high,
+			auto& search)->int64_t
+		{
+			if (low > high)
+				return -1;
+
+			int64_t mid = (low + high) / 2;
+			if (array[mid].block == addr)
+				return mid;
+			else if (array[mid].block < addr)
+				return search(array, addr, mid + 1, high, search);
+			else
+				return search(array, addr, low, mid - 1, search);
+		};
+
 	int idx = 0;
-	if ((idx = binarySearch(this->begin(), addr, 0, m_Count - 1)) == -1)
+	if ((idx = search(this->begin(), addr, 0, m_Count - 1, search)) == -1)
 		return this->end();
 
 	return this->begin() + idx;
@@ -203,22 +206,22 @@ void *malloc(size_t size)
 		return nullptr; //TODO: think about throwing an exception
 
 	
-	for (MallocBlockVector::Iterator ittr = s_MallocAllocations.begin();
-			ittr != s_MallocAllocations.end();
-			++ittr)
+	for (MallocBlockVector::Iterator itr = s_MallocAllocations.begin();
+			itr != s_MallocAllocations.end();
+			++itr)
 	{
-		if ((uintptr_t)ittr->block + ittr->blockLength + size <=
-				(uintptr_t)((ittr + 1)->block))
+		if ((uintptr_t)itr->block + itr->blockLength + size <=
+				(uintptr_t)((itr + 1)->block))
 		{
-			void* addr = (void*)((uintptr_t)ittr->block + ittr->blockLength);
+			void* addr = (void*)((uintptr_t)itr->block + itr->blockLength);
 			s_MallocAllocations.Insert({ size, addr });
 			return addr;
 		}
 	}
 	
 
-	MallocBlockVector::Iterator ittr = s_MallocAllocations.end() - 1;
-	uintptr_t endOfMallocBlock = (uintptr_t)ittr->block + ittr->blockLength;
+	MallocBlockVector::Iterator itr = s_MallocAllocations.end() - 1;
+	uintptr_t endOfMallocBlock = (uintptr_t)itr->block + itr->blockLength;
 	
 
 	if (!memoryInUsableRange(&s_MemoryMap, endOfMallocBlock, size))
@@ -273,9 +276,9 @@ void *realloc(void *addr, size_t size)
 
 void free(void *addr)
 {
-	MallocBlockVector::Iterator ittr;
-	if ((ittr = s_MallocAllocations.Find(addr)) != s_MallocAllocations.end())
-		s_MallocAllocations.Remove(ittr);
+	MallocBlockVector::Iterator itr;
+	if ((itr = s_MallocAllocations.Find(addr)) != s_MallocAllocations.end())
+		s_MallocAllocations.Remove(itr);
 }
 
 //MallocLinkedList::ReverseIterator MallocLinkedList::rbegin()
