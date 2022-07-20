@@ -7,31 +7,19 @@ COBJECTS := $(patsubst %.c,obj/%.o,$(notdir $(C_SOURCES))) obj/interrupt.o
 CXXOBJECTS := $(patsubst %.cpp,obj/%.o,$(notdir $(CXX_SOURCES)))
 OBJECTS := $(COBJECTS) $(CXXOBJECTS)
 
-export LIBGCCPATH := /usr/x86_64elfgcc/lib/gcc/x86_64-elf/12.1.0/no-red-zone
-
-export CRTBEGIN := $(LIBGCCPATH)/crtbegin.o
-export CRTEND := $(LIBGCCPATH)/crtend.o
-
-CRTI := obj/crti.o
-CRTN := obj/crtn.o
-
-OBJLINKLIST := $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
-
 export PROJROOTDIR := $(CURDIR)
 
 export TARGET := x86_64
 
-export CC := /usr/x86_64elfgcc/bin/x86_64-elf-gcc
-export CXX := /usr/x86_64elfgcc/bin/x86_64-elf-g++
-export AS := /usr/x86_64elfgcc/bin/x86_64-elf-as
-export AR := /usr/x86_64elfgcc/bin/x86_64-elf-ar
-export LD := /usr/x86_64elfgcc/bin/x86_64-elf-ld
+export CC := x86_64-elf-gcc
+export CXX := x86_64-elf-g++
+export AS := x86_64-elf-as
+export AR := x86_64-elf-ar
+export LD := x86_64-elf-ld
 
-export OBJCOPY := /usr/x86_64elfgcc/bin/x86_64-elf-objcopy
+export OBJCOPY := x86_64-elf-objcopy
 
-export GDB := /usr/x86_64elfgcc/bin/x86_64-elf-gdb
-
-export LIBPATH := /usr/x86_64elfgcc/lib/gcc/x86_64-elf/12.1.0
+export GDB := x86_64-elf-gdb
 
 CFLAGS := -g -mcmodel=large -mno-red-zone -mno-sse -mno-sse2 \
 		  -mno-mmx -fexceptions -fasynchronous-unwind-tables \
@@ -43,9 +31,18 @@ CXXFLAGS := -g -std=c++17 -mcmodel=large -mno-red-zone -mno-sse -mno-sse2 \
 			-Isysdeps/$(TARGET) -I$(CURDIR) -include stdint.h -Wall -Wextra \
 			-Werror -fno-rtti -fno-use-cxa-atexit
 
-LINKFLAGS := -lgcc -nostdlib
+LINKFLAGS := -nostdlib
 
 DEFINES := -D __PHYSICAL_ADDRESS_EXTENSION__=1
+
+export LIBGCC   := $(shell $(CC) $(CXXFLAGS) --print-file-name "libgcc.a")
+export CRTBEGIN := $(shell $(CC) $(CXXFLAGS) --print-file-name "crtbegin.o")
+export CRTEND   := $(shell $(CC) $(CXXFLAGS) --print-file-name "crtend.o")
+
+CRTI := obj/crti.o
+CRTN := obj/crtn.o
+
+OBJLINKLIST := $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 
 DRIVERS := drivers/portio/bin/portio.so drivers/terminal/bin/terminal.so \
 			drivers/graphics/bin/graphics.so
@@ -63,7 +60,7 @@ bin/os-image.bin: obj/boot.bin obj/bootSecondStage.bin obj/kernel.elf
 	chmod +x $@
 
 obj/kerneld.elf: linkScript.ld obj/kernel_entry.o $(OBJLINKLIST) $(DRIVERS)
-	$(LD) -o $@ -N -T linkScript.ld $(LINKFLAGS) $(OBJLINKLIST) -L$(LIBGCCPATH)
+	$(LD) -o $@ -N -T linkScript.ld $(LINKFLAGS) $(OBJLINKLIST) $(LIBGCC)
 
 obj/kernel.elf: obj/kerneld.elf
 	$(OBJCOPY) -S $^ $@
