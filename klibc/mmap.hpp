@@ -45,6 +45,7 @@ inline MemoryMap *fillMemoryMap(MemoryMap *mapIn)
 }
 
 MemoryMap *sortMemoryMap(MemoryMap *mapIn);
+bool memoryInUsableRange(const MemoryMap* map, uintptr_t address, size_t length);
 
 #endif
 

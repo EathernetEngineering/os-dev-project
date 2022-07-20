@@ -24,6 +24,8 @@
 * Added `malloc`
 * Added linking to libgcc
 * Added `kentry()` and moved all critical initialization functions there, and renamed the original `kentry` `kmain`
+* Added algorithm.hpp and algorithm.cpp, for now only containing `foreach`
+* Added `memoryInUsableRange` to check if block of memory is in a usable range using e820 map
 
 
 ## Deletions:
