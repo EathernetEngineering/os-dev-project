@@ -57,8 +57,8 @@ class MallocBlockVector final
 
 void initMalloc();
 
-void *malloc(size_t size);
-void *realloc(void *addr, size_t size);
+void *malloc(size_t size); // throw();
+void *realloc(void *addr, size_t size); //throw();
 void free(void *addr) noexcept;
 
 #endif // _MALLOC_INTERNAL_HPP

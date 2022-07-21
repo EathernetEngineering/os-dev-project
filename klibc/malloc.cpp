@@ -205,7 +205,7 @@ void *malloc(size_t size)
 	if (size == 0)
 		return nullptr; //TODO: think about throwing an exception
 
-	
+
 	for (MallocBlockVector::Iterator itr = s_MallocAllocations.begin();
 			itr != s_MallocAllocations.end();
 			++itr)
@@ -214,6 +214,11 @@ void *malloc(size_t size)
 				(uintptr_t)((itr + 1)->block))
 		{
 			void* addr = (void*)((uintptr_t)itr->block + itr->blockLength);
+
+			if (!memoryInUsableRange(&s_MemoryMap, (uintptr_t)addr, size))
+				return nullptr; //TODO: think about throwing an exception
+
+
 			s_MallocAllocations.Insert({ size, addr });
 			return addr;
 		}
