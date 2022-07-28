@@ -2,9 +2,12 @@
 #define _KLIBC_INIT_HPP
 
 #include "klibc/malloc_internal.hpp"
+#include "klibc/kprint.hpp"
 
 inline void initKlibc()
 {
+	kprint("Initalizing klibc\n");
+
 	initMalloc();
 }
 

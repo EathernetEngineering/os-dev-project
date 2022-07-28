@@ -174,7 +174,7 @@ setupPaging:
 	mov edi, 0x1000
 	mov cr3, edi
 	xor eax, eax
-	mov ecx, 4096
+	mov ecx, 0x3800
 	rep stosd
 	mov edi, cr3
 
@@ -182,17 +182,27 @@ setupPaging:
 	add edi, 0x1000
 	mov DWORD [edi], 0x3003
 	add edi, 0x1000
-	mov DWORD [edi], 0x4003
-	add edi, 0x1000
 
-	mov ebx, 0x03
-	mov ecx, 512
+	push edi
+	mov ebx, 0x4003
+	mov ecx, 11
 
-.setEntry:
+.setPml3Entry
 	mov DWORD [edi], ebx
 	add ebx, 0x1000
 	add edi, 8
-	loop .setEntry
+	loop .setPml3Entry
+
+	pop edi
+	add edi, 0x1000
+	mov ebx, 0x03
+	mov ecx, 0x1600
+
+.setPml4Entry:
+	mov DWORD [edi], ebx
+	add ebx, 0x1000
+	add edi, 8
+	loop .setPml4Entry
 
 	mov eax, cr4
 	or eax, 1 << 5

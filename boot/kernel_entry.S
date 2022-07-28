@@ -1,6 +1,7 @@
 /* x86_64 kernel_entry.S */
 
-.extern kentry
+.extern kstart
+.extern kmain
 .extern _init
 .extern _fini
 
@@ -9,7 +10,7 @@
 .type _start,@function
 .size _start,8
 _start:
-	call kentry
+	call kstart
 	call _init
 	call kmain
 

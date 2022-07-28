@@ -2,8 +2,7 @@
 #include "cpu/idt.hpp"
 #include "cpu/io.hpp"
 
-#include "kernel/kprint.hpp"
-
+#include "klibc/kprint.hpp"
 #include "klibc/memory.hpp"
 #include "klibc/stdlib.hpp"
 #include "klibc/string.hpp"
@@ -122,14 +121,14 @@ const char *exceptionMessages[] = {
 	"Stack Fault",
 	"General Protection Fault",
 	"Page Fault",
-	"Unknown Interrupt",
+	"Reserved",
 
 	"Coprocessor Fault",
 	"Alignment Check",
 	"Machine Check",
-	"Reserved",
-	"Reserved",
-	"Reserved",
+	"SIMD Floating-Point Exception",
+	"Virtualization Exception",
+	"Conttrol Protection Exception",
 	"Reserved",
 	"Reserved",
 
@@ -137,9 +136,9 @@ const char *exceptionMessages[] = {
 	"Reserved",
 	"Reserved",
 	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
+	"Hypervisor Injection Exception",
+	"VMM Communication Exception",
+	"Security Exception",
 	"Reserved"
 };
 
@@ -150,7 +149,7 @@ extern "C" void isrHandler(registers_t *r)
 	memset(s, 0, 256);
 	int_to_ascii(r->int_no, s);
 	kprint(s);
-	kprint("\n");
+	kprint("\n\t");
 	kprint(exceptionMessages[r->int_no]);
 	if (r->err_code)
 	{

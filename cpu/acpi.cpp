@@ -1,7 +1,6 @@
 #include "cpu/acpi.hpp"
 
-#include "kernel/kprint.hpp"
-
+#include "klibc/kprint.hpp"
 #include "klibc/memory.hpp"
 #include "klibc/string.hpp"
 

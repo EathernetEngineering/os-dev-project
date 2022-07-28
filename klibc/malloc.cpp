@@ -2,8 +2,7 @@
 #include "klibc/memory.hpp"
 #include "klibc/mmap.hpp"
 #include "klibc/function.hpp"
-
-#include "kernel/kprint.hpp"
+#include "klibc/kprint.hpp"
 
 static MemoryMap s_MemoryMap;
 static MallocBlockVector s_MallocAllocations;
@@ -195,7 +194,7 @@ void initMalloc()
 	sortMemoryMap(&s_MemoryMap);
 
 	s_MallocAllocations = MallocBlockVector(
-			reinterpret_cast<void*>(0x2000000),
+			reinterpret_cast<void*>(0x1000000),
 			sizeof(MallocNode) * 1024);
 }
 

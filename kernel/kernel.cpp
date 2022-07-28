@@ -1,15 +1,16 @@
 #include "kernel/kernel.hpp"
-#include "kernel/kprint.hpp"
 
+#include "cpu/page.hpp"
 #include "cpu/acpi.hpp"
 #include "cpu/isr.hpp"
 
 #include "klibc/function.hpp"
 #include "klibc/memory.hpp"
+#include "klibc/kprint.hpp"
 
 #include "klibc/init.hpp"
 
-extern "C" void kentry()
+extern "C" void kstart()
 {
 	kprint("Entered kentry()\n");
 

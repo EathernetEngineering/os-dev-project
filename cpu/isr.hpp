@@ -95,6 +95,37 @@ enum ICW4
 #define IRQ15    47
 #define svr      0xFF
 
+namespace exceptions
+{
+	enum cpuExceptions
+	{
+		divisionByZeroException             =  0,
+		debugException                      =  1,
+		nonMaskableInterruptException       =  2,
+		breakpointException                 =  3,
+		overflowException                   =  4,
+		boundRangeExceededException         =  5,
+		invalidOpcodeException              =  6,
+		deviceNotAvailableException         =  7,
+		doubleFaultException                =  8,
+		coprocessorSegmentOverrunException  =  9,
+		invalidTssException                 = 10,
+		segmentNotPresentException          = 11,
+		stackSegmentFaultException          = 12,
+		generalProtectionFaultException     = 13,
+		pageFaultException                  = 14,
+		x87FloatingPointException           = 16,
+		alignmentCheckException             = 17,
+		machineCheckException               = 18,
+		simdFloatingPointException          = 19,
+		virtualizationException             = 20,
+		controlProtectionException          = 21,
+		hypervisorInjectionException        = 28,
+		vmmCommunicationException           = 29,
+		securityException                   = 30,
+	};
+}
+
 typedef struct {
 	uint64_t ds;
 	uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
