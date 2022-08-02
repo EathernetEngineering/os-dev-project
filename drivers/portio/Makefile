@@ -4,19 +4,19 @@ HEADERS := $(wildcard src/*.hpp)
 OBJECTS := $(patsubst %.cpp,obj/%.o,$(notdir $(SOURCES)))
 
 CXXFLAGS := -g -std=c++17 -mcmodel=large -mno-red-zone -mno-sse -mno-sse2 \
-			-mno-mmx -fexceptions -fasynchronous-unwind-tables \
-			-I$(CURDIR)/inc/ -Wall -Wextra -Werror -I$(PROJROOTDIR)/drivers/terminal/inc/
+			-mno-mmx -fno-exceptions -fasynchronous-unwind-tables \
+			-I$(CURDIR)/inc -include stdint.h -Wall -Wextra -Werror \
+			-fno-rtti -fno-use-cxa-atexit
 
-DEFINES := -D __PHYSICAL_ADDRESS_EXTENSION__=1
+LINKFLAGS := -nostdlib
 
-all: bin/portio.so
 .PHONY: all
+all: bin/portio.so
 
 bin/portio.so: $(OBJECTS)
 	$(LD) -shared -o $@ $^
 
 obj/%.o: */%.cpp $(HEADERS)
-	echo $(PROJROOTDIR)
 	$(CXX) $(CXXFLAGS) $(DEFINES) -ffreestanding -c $< -o $@
 
 .PHONY: clean

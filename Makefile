@@ -72,14 +72,16 @@ obj/crtn.o: runtime/crtn.S
 	$(AS) -o $@ $^
 
 bin/OSVHD.img: obj/kernel.elf $(DRIVERS)
-	sudo dd if=/dev/zero of=$@ bs=1M count=1024
-	sudo sfdisk $@ < OSVHD.sfdisk
+	-rm -f $@
+	dd if=/dev/zero of=$@ bs=1M count=1024
+	sfdisk $@ < OSVHD.sfdisk
 	yes | sudo mkfs.ext4 $@
 	-sudo mkdir /mnt/osvhd
 	sudo mount -t auto -o loop $@ /mnt/osvhd
 	sudo cp obj/kernel.elf $(DRIVERS) /mnt/osvhd/
 	sudo umount /mnt/osvhd
 	-sudo rm -rf /mnt/osvhd
+	
 
 STL/bin/libstdc++.a:
 	$(MAKE) -C STL/

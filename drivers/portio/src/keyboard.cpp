@@ -1,11 +1,8 @@
 #include "portio/keyboard.hpp"
 
-// TODO: Remove screen.hpp dependancy. We only want to get the
-// input and let the kernel decide whether to print it or not.
-#include "terminal/screen.hpp"
-
 #define UNUSED(x) (void)(x)
 #define IRQ1      0x21
+
 typedef struct {
 	unsigned long int ds;
 	unsigned long int r15, r14, r13, r12, r11, r10, r9, r8;
@@ -13,6 +10,7 @@ typedef struct {
 	unsigned long int int_no, err_code;
 	unsigned long int rip, cs, eflags, userrsp, ss;
 } __attribute__((packed)) registers_t;
+
 typedef void (*isr_t)(registers_t*);
 extern unsigned char portByteIn(unsigned char);
 extern void user_input(char buffer[]);
@@ -61,11 +59,11 @@ static void keyboardCallback(registers_t *regs)
 	{
 		if (key_buffer[0] == '\0') return;
 		backspace(key_buffer);
-		kprint_backspace();
+		//kprint_backspace();
 	}
 	else if (scancode == KEY_ENTER)
 	{
-		kprint("\n");
+		//kprint("\n");
 		user_input(key_buffer);
 		key_buffer[0] = '\0';
 	}
@@ -82,14 +80,16 @@ static void keyboardCallback(registers_t *regs)
 			else letter = sc_ascii_lower[(int)scancode];
 			char str[2] = { letter, '\0' };
 			append(key_buffer, letter);
-			kprint(str);
+			UNUSED(str);
+			//kprint(str);
 		}
 		else
 		{
 			char letter = sc_ascii_lower[(int)scancode];
 			char str[2] = { letter, '\0' };
 			append(key_buffer, letter);
-			kprint(str);
+			UNUSED(str);
+			//kprint(str);
 		}
 	}
 	UNUSED(regs);

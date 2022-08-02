@@ -1,6 +1,8 @@
 #ifndef __DRIVERS__SCREEN_H__
 #define __DRIVERS__SCREEN_H__
 
+#include <stddef.h>
+
 #define VIDEO_ADDRESS		(unsigned char*)0xB8000
 #define MAX_ROWS			25
 #define MAX_COLS			80

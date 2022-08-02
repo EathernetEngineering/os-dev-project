@@ -1,9 +1,9 @@
-#include "drivers/screen.hpp"
-#include "drivers/serial.hpp"
+#include "terminal/screen.hpp"
 
-#include "cpu/io.hpp"
+uint8_t portByteIn(uint16_t port);
+void portByteOut(uint16_t port, uint8_t data);
 
-#include "libc/memory.hpp"
+void memcpy(void *dst, void *src, size_t length);
 
 int get_cursor_offset();
 void set_cursor_offset(int offset);
@@ -125,9 +125,7 @@ void kprint_backspace()
 	int offset = get_cursor_offset()-2;
 	int row = get_offset_row(offset);
 	int col = get_offset_col(offset);
-	portByteOut(COM1, '\b');
 	print_char(' ', col, row, WHITE_ON_BLACK);
-	portByteOut(COM1, '\b');
 	set_cursor_offset(offset);
 }
 
@@ -149,18 +147,9 @@ int print_char(char c, int col, int row, char attr) {
 		row = get_offset_row(offset);
 		offset = get_offset(0, row+1);
 		
-		if (serial_is_initialized())
-		{
-			portByteOut(COM1, '\r');
-			portByteOut(COM1, '\n');
-		}
 	} else if (c == '\r') {
 		row = get_offset_row(offset);
 		offset = get_offset(0, row);
-		if (serial_is_initialized())
-		{
-			portByteOut(COM1, '\r');
-		}
 	} else if (c == '\t') {
 		for (uint32_t i = 0; i < 8; i += 2)
 		{
@@ -168,18 +157,10 @@ int print_char(char c, int col, int row, char attr) {
 			vidmem[offset + 1] = attr;
 			offset += 2;
 		}
-		if (serial_is_initialized())
-		{
-			portByteOut(COM1, '\t');
-		}
 	} else {
 		vidmem[offset] = c;
 		vidmem[offset+1] = attr;
 		offset += 2;
-		if (serial_is_initialized())
-		{
-			portByteOut(COM1, c);
-		}
 	}
 
 	if (offset >= MAX_ROWS * MAX_COLS * 2)
