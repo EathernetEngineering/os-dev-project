@@ -6,9 +6,10 @@
 
 #include "klibc/function.hpp"
 #include "klibc/memory.hpp"
-#include "klibc/kprint.hpp"
-
 #include "klibc/init.hpp"
+#include "klibc/stdlib.hpp"
+
+#include "drivers/screen.hpp"
 
 extern "C" void kstart()
 {
@@ -22,24 +23,12 @@ extern "C" void kstart()
 
 extern "C" void kmain()
 {
-	kprint("Testing interrupts\n");
-	__asm__ volatile ("int $3");
-	__asm__ volatile ("int $15");
-
 	initKlibc();
 
-	/*
-	try {
-		throw "C++ Exception Test\n";
-	} catch (const char* em) {
-		kprint(em);
-	}
-	*/
-
 	kprint("Starting event loop\n");
-kentry_hlt:
-	__asm__ ("hlt");
-	goto kentry_hlt;
+	for (;;) {
+		__asm__ ("hlt");
+	}
 }
 
 extern "C" void exit()

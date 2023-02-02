@@ -1,7 +1,7 @@
-C_SOURCES := $(wildcard kernel/*.c cpu/*.c klibc/*.c )
-C_HEADERS := $(wildcard kernel/*.h cpu/*.h klibc/*.h )
-CXX_SOURCES := $(wildcard kernel/*.cpp cpu/*.cpp klibc/*.cpp)
-CXX_HEADERS := $(wildcard kernel/*.hpp cpu/*.hpp klibc/*.hpp)
+C_SOURCES := $(wildcard kernel/*.c cpu/*.c klibc/*.c drivers/*.c)
+C_HEADERS := $(wildcard kernel/*.h cpu/*.h klibc/*.h drivers/*.h)
+CXX_SOURCES := $(wildcard kernel/*.cpp cpu/*.cpp klibc/*.cpp drivers/*.cpp)
+CXX_HEADERS := $(wildcard kernel/*.hpp cpu/*.hpp klibc/*.hpp drivers/*.hpp)
 
 COBJECTS := $(patsubst %.c,obj/%.o,$(notdir $(C_SOURCES))) obj/interrupt.o
 CXXOBJECTS := $(patsubst %.cpp,obj/%.o,$(notdir $(CXX_SOURCES)))
@@ -44,11 +44,9 @@ CRTN := obj/crtn.o
 
 OBJLINKLIST := $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 
-DRIVERS := drivers/portio/bin/portio.so drivers/terminal/bin/terminal.so \
-			drivers/graphics/bin/graphics.so
 STDLIBRARIES := STL/bin/libstdc++.a
 
-LIBRARIES := $(DRIVERS) $(STDLIBRARIES)
+LIBRARIES := $(STDLIBRARIES)
 
 .PHONY: all
 all: bin/os-image.bin obj/kerneld.elf obj/kernel.elf \
@@ -59,7 +57,7 @@ bin/os-image.bin: obj/boot.bin obj/bootSecondStage.bin obj/kernel.elf
 	dd if=/dev/zero of=$@ bs=1 count=1 seek=1548288
 	chmod +x $@
 
-obj/kerneld.elf: linkScript.ld obj/kernel_entry.o $(OBJLINKLIST) $(DRIVERS)
+obj/kerneld.elf: linkScript.ld obj/kernel_entry.o $(OBJLINKLIST)
 	$(LD) -o $@ -N -T linkScript.ld $(LINKFLAGS) $(OBJLINKLIST) $(LIBGCC)
 
 obj/kernel.elf: obj/kerneld.elf
@@ -71,27 +69,18 @@ obj/crti.o: runtime/crti.S
 obj/crtn.o: runtime/crtn.S
 	$(AS) -o $@ $^
 
-bin/OSVHD.img: obj/kernel.elf $(DRIVERS)
+bin/OSVHD.img: obj/kernel.elf
 	sudo dd if=/dev/zero of=$@ bs=1M count=1024
 	sudo sfdisk $@ < OSVHD.sfdisk
 	yes | sudo mkfs.ext4 $@
 	-sudo mkdir /mnt/osvhd
 	sudo mount -t auto -o loop $@ /mnt/osvhd
-	sudo cp obj/kernel.elf $(DRIVERS) /mnt/osvhd/
+	sudo cp obj/kernel.elf /mnt/osvhd/
 	sudo umount /mnt/osvhd
 	-sudo rm -rf /mnt/osvhd
 
 STL/bin/libstdc++.a:
 	$(MAKE) -C STL/
-
-drivers/portio/bin/portio.so:
-	$(MAKE) -C drivers/ portio
-
-drivers/terminal/bin/terminal.so:
-	$(MAKE) -C drivers/ terminal
-
-drivers/graphics/bin/graphics.so:
-	$(MAKE) -C drivers/ graphics
 
 .PHONY: run
 run: bin/os-image.bin
@@ -153,18 +142,15 @@ obj/%.o: */%.S
 obj/%.bin: */%.asm
 	nasm $< -fbin -o $@
 
-.PHONY: clean cleanall cleanstl cleanlibc cleandrivers
+.PHONY: clean cleanall cleanstl cleanlibc
 clean:
 	rm -f bin/* obj/*
 
-cleanall: clean cleanstl cleanlibc cleandrivers
+cleanall: clean cleanstl cleanlibc
 
 cleanstl:
 	$(MAKE) -C STL/ clean
 
 cleanlibc:
 	#$(MAKE) -C libc/ clean
-
-cleandrivers:
-	$(MAKE) -C drivers/ cleanall
 

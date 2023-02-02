@@ -2,11 +2,12 @@
 #include "cpu/idt.hpp"
 #include "cpu/io.hpp"
 
-#include "klibc/kprint.hpp"
 #include "klibc/memory.hpp"
 #include "klibc/stdlib.hpp"
 #include "klibc/string.hpp"
 #include "klibc/function.hpp"
+
+#include "drivers/screen.hpp"
 
 #include <cpuid.h>
 

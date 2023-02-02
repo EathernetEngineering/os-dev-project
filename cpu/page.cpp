@@ -3,7 +3,8 @@
 
 #include "klibc/function.hpp"
 #include "klibc/stdlib.hpp"
-#include "klibc/kprint.hpp"
+
+#include "drivers/screen.hpp"
 
 PageMapLevel4 *_pPageMap;
 

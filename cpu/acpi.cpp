@@ -1,8 +1,9 @@
 #include "cpu/acpi.hpp"
 
-#include "klibc/kprint.hpp"
 #include "klibc/memory.hpp"
 #include "klibc/string.hpp"
+
+#include "drivers/screen.hpp"
 
 static AcpiSdtHeader *_RootSdt;
 

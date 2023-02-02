@@ -1,8 +1,15 @@
-#include "portio/serial.hpp"
+#include "drivers/serial.hpp"
+
+#include "cpu/io.hpp"
+#include "cpu/isr.hpp"
+
+#include "drivers/screen.hpp"
+
+#include "klibc/function.hpp"
 
 int serial_initialized = 0;
 
-static void serialInCallback(registers_t *regs)
+void serialInCallback(registers_t *regs)
 {
 	char serial_in = portByteIn(COM1);
 

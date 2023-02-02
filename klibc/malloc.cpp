@@ -2,7 +2,8 @@
 #include "klibc/memory.hpp"
 #include "klibc/mmap.hpp"
 #include "klibc/function.hpp"
-#include "klibc/kprint.hpp"
+
+#include "drivers/screen.hpp"
 
 static MemoryMap s_MemoryMap;
 static MallocBlockVector s_MallocAllocations;
@@ -222,11 +223,9 @@ void *malloc(size_t size)
 			return addr;
 		}
 	}
-	
 
 	MallocBlockVector::Iterator itr = s_MallocAllocations.end() - 1;
 	uintptr_t endOfMallocBlock = (uintptr_t)itr->block + itr->blockLength;
-	
 
 	if (!memoryInUsableRange(&s_MemoryMap, endOfMallocBlock, size))
 		return nullptr; //TODO: think about throwing an exception

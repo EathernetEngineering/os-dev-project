@@ -3,7 +3,7 @@
 
 #include "cpu/io.hpp"
 
-#include "libc/memory.hpp"
+#include "klibc/string.hpp"
 
 int get_cursor_offset();
 void set_cursor_offset(int offset);

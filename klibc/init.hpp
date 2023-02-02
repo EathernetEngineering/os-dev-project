@@ -2,7 +2,8 @@
 #define _KLIBC_INIT_HPP
 
 #include "klibc/malloc_internal.hpp"
-#include "klibc/kprint.hpp"
+
+#include "drivers/screen.hpp"
 
 inline void initKlibc()
 {

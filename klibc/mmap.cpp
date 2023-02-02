@@ -1,7 +1,8 @@
 #include "klibc/mmap.hpp"
-#include "klibc/kprint.hpp"
 #include "klibc/algorithm.hpp"
 #include "klibc/function.hpp"
+
+#include "drivers/screen.hpp"
 
 MemoryMap *sortMemoryMap(MemoryMap *mapIn)
 {

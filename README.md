@@ -1,5 +1,5 @@
 # os-dev-project
-Expanding my skills by developing a basic CLI operating system
+Expanding my skills by developing a basic CLI operating system using a monolithic kernel model
 
 Requirements
 ----
